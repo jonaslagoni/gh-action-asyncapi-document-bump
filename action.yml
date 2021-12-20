@@ -1,0 +1,64 @@
+name: Automated Version Bump for AsyncAPI 
+description: Automated version bump AsyncAPI documents following Semantic Versioning.  
+runs:
+  using: node12
+  main: index.js
+branding:
+  icon: chevron-up
+  color: blue
+inputs:
+  tag-prefix:
+    description: 'Prefix that is used for the git tag'
+    default: ''
+    required: false
+  minor-wording:
+    description: 'Words list that trigger a minor version bump'
+    default: 'feat'
+    required: false
+  major-wording:
+    description: 'Words list that trigger a major version bump'
+    default: '!'
+    required: false
+  patch-wording:
+    description: 'Words list that trigger a patch version bump'
+    default: 'fix'
+    required: false
+  release-candidate-wording:
+    description: 'Words list that trigger a release candidate version bump'
+    default: 'pre-alpha,pre-beta,pre-rc'
+    required: false
+  skip-tag:
+    description: 'Avoid to add a TAG to the version update commit'
+    default: 'false'
+    required: false
+  skip-commit:
+    description: 'Avoid to add a commit after the version is bumped'
+    default: 'false'
+    required: false
+  skip-push:
+    description: 'If true, skip pushing any commits or tags created after the version bump'
+    default: false
+    required: false
+  path-to-asyncapi:
+    description: 'Path to the AsyncAPI document to bump'
+    default: ''
+    required: false
+  target-branch:
+    description: 'A separate branch to perform the version bump on'
+    default: ''
+    required: false
+  default-bump-version:
+    description: 'Set a default version bump to use'
+    default: 'patch'
+    required: false
+  pre-release-id:
+    description: 'Set a custom id for prerelease build'
+    default: 'rc'
+    required: false
+  commit-message:
+    description: 'Set a custom commit message for version bump commit. Use {{version}} as a placeholder for the new version.'
+    default: 'ci: version bump to {{version}}'
+    required: false
+outputs:
+  newVersion:
+    description: 'The new version'
