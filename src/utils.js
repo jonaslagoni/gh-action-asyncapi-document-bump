@@ -4,7 +4,6 @@ const { EOL } = require('os');
 const path = require('path');
 
 module.exports.getAsyncAPIDocument = function getAsyncAPIDocument(pathToDocument) {
-  pathToDocument = pathToDocument !== '' ? pathToDocument : path.join(workspace, 'asyncapi.json');
   if (!existsSync(pathToDocument)) throw new Error("asyncapi.json could not be found in your project's root.");
   return require(pathToDocument);
 }
@@ -58,38 +57,61 @@ module.exports.runInWorkspace = function runInWorkspace(command, args) {
  * @param {*} bumpPatchVersion 
  * @returns 
  */
-module.exports.bumpVersion = (currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPatchVersion) => {
-  return currentVersion;
+module.exports.bumpVersion = (currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPatchVersion, bumpPreReleaseVersion, preReleaseId, pathToDocument) => {
+  if(bumpPreReleaseVersion) {
+
+  }
+  if(bumpMajorVersion || bumpMinorVersion || bumpPatchVersion) {
+    const splitCurrentVersion = currentVersion.split('.').map(value => Number(value));
+    if(bumpMajorVersion) {
+      splitCurrentVersion[0]++;
+    } else if(bumpMinorVersion) {
+      splitCurrentVersion[1]++;
+    } else if(bumpPatchVersion) {
+      splitCurrentVersion[2]++;
+    }
+    const newRawVersion = splitCurrentVersion.join('.');
+    return `${tagPrefix}${newRawVersion}-${preReleaseId}`;
+  }
 }
 
 module.exports.getGitCommits = () => {
   const event = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
-
+  
   if (!event.commits) {
     logInfo("Couldn't find any commits in this event, incrementing patch version...");
   }
   return event.commits ? event.commits.map((commit) => commit.message + '\n' + commit.body) : [];
 }
 
-module.exports.shouldDoBump = (commitMessages) => {
+module.exports.shouldBump = (commitMessage, commitMessages) => {
   const commitMessageRegex = new RegExp(commitMessage.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
-  const isVersionBump = commitMessages.find((message) => commitMessageRegex.test(message)) !== undefined;
+  const alreadyBumped = commitMessages.find((message) => commitMessageRegex.test(message)) !== undefined;
 
-  if (isVersionBump) {
+  if (alreadyBumped) {
     exitSuccess('No action necessary because we found a previous bump!');
     return false;
   }
+
+  const {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion} = analyseVersionChange();
+
+  //Should we do any version updates? 
+  if (!doMajorVersion && !doMinorVersion && !doPatchVersion && !doPreReleaseVersion) {
+    logInfo('Could not find any version bump to make, skipping.');
+    return;
+  }
+
 
   // case: if default=prerelease,
   // rc-wording is also set
   // and does not include any of rc-wording
   // then unset it and do not run
   if (
-    version === 'prerelease' &&
+    doPreReleaseVersion &&
     preReleaseWords &&
     !commitMessages.some((message) => preReleaseWords.some((word) => message.includes(word)))
   ) {
-    logInfo('Default bump version sat to a nonexisting release candidate wording, skipping bump.');
+    logInfo('Default bump version sat to a nonexisting prerelease wording, skipping bump. Please add ');
     return;
   }
   return true;
@@ -111,22 +133,22 @@ module.exports.analyseVersionChange = (commitMessages) => {
   const doMajorVersion = false;
   const doMinorVersion = false;
   const doPatchVersion = false;
+  const doPreReleaseVersion = false;
+  let foundPreReleaseId = null;
+  // case: if wording for MAJOR found
   if (
     commitMessages.some(
       (message) => /^([a-zA-Z]+)(\(.+\))?(\!)\:/.test(message) || majorWords.some((word) => message.includes(word)),
     )
   ) {
-    version = 'major';
     doMajorVersion = true;
   }
   // case: if wording for MINOR found
   else if (commitMessages.some((message) => minorWords.some((word) => message.includes(word)))) {
-    version = 'minor';
     doMinorVersion = true;
   }
   // case: if wording for PATCH found
   else if (patchWords && commitMessages.some((message) => patchWords.some((word) => message.includes(word)))) {
-    version = 'patch';
     doPatchVersion = true;
   }
   // case: if wording for PRE-RELEASE found
@@ -143,28 +165,28 @@ module.exports.analyseVersionChange = (commitMessages) => {
       }),
     )
   ) {
-    preId = foundWord.split('-')[1];
-    version = 'prerelease';
+    foundPreReleaseId = foundWord.split('-')[1]; //Prerelease id are always 0.0.0-prerelease
+    doPatchVersion = true;
   }
-  return {doMajorVersion, doMinorVersion, doPatchVersion}
+  return {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion, foundPreReleaseId}
+}
+module.exports.findPreReleaseId = () => {
+
 }
 
-module.exports.commitChanges = () => {
+module.exports.setGitConfigs = async () => {
   // set git user
   await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Automated Version Bump'}"`]);
   await runInWorkspace('git', [
     'config',
     'user.email',
-    `"${process.env.GITHUB_EMAIL || 'gh-action-bump-version@users.noreply.github.com'}"`,
+    `"${process.env.GITHUB_EMAIL || 'gh-action-asyncapi-bump-version@users.noreply.github.com'}"`,
   ]);
 
+  await runInWorkspace('git', ['fetch']);
 
-  // now go to the actual branch to perform the same versioning
-  if (isPullRequest) {
-    // First fetch to get updated local version of branch
-    await runInWorkspace('git', ['fetch']);
-  }
-
+}
+module.exports.commitChanges = async (newVersion) => {
   try {
     // to support "actions/checkout@v1"
     if (!skipCommit) {
@@ -173,7 +195,7 @@ module.exports.commitChanges = () => {
   } catch (e) {
     console.warn(
       'git commit failed because you are using "actions/checkout@v2"; ' +
-      'but that doesnt matter because you dont need that git commit, thats only for "actions/checkout@v1"',
+      'but that does not matter because you dont need that git commit, thats only for "actions/checkout@v1"',
     );
   }
 

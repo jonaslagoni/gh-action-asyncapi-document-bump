@@ -12,19 +12,19 @@ inputs:
     default: ''
     required: false
   minor-wording:
-    description: 'Words list that trigger a minor version bump'
+    description: 'Words list that trigger a minor version bumpUse \',\' to separate multiple words'
     default: 'feat'
     required: false
   major-wording:
-    description: 'Words list that trigger a major version bump'
-    default: '!'
+    description: 'Words list that trigger a major version bump. Use \',\' to separate multiple words'
+    default: 'feat!,fix!,refactor!'
     required: false
   patch-wording:
-    description: 'Words list that trigger a patch version bump'
+    description: 'Words list that trigger a patch version bump. Use \',\' to separate multiple words'
     default: 'fix'
     required: false
   release-candidate-wording:
-    description: 'Words list that trigger a release candidate version bump'
+    description: 'Words list that trigger a release candidate version bump. Use \',\' to separate multiple words'
     default: 'pre-alpha,pre-beta,pre-rc'
     required: false
   skip-tag:
@@ -60,5 +60,9 @@ inputs:
     default: 'ci: version bump to {{version}}'
     required: false
 outputs:
+  wasBumped:
+    description: 'Boolean to check if document was bumped'
   newVersion:
-    description: 'The new version'
+    description: 'The new version of the AsyncAPI document'
+  oldVersion:
+    description: 'The old version of the AsyncAPI document'

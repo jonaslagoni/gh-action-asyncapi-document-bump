@@ -5,7 +5,8 @@ const {
   exitFailure,
   logError,
   runInWorkspace,
-  bump
+  bump,
+  getGitCommits
 } = require('./utils')
 
 module.exports = async (
@@ -22,49 +23,38 @@ module.exports = async (
   defaultBumpVersion,
   preReleaseId,
   commitMessage) => {
+  setGitConfigs();
   const document = getAsyncAPIDocument(pathToDocument);
   const currentVersion = document.info.version.toString();
 
   let version = defaultBumpVersion;
-  let preId = preReleaseId;
+  let preReleaseId = preReleaseId;
 
-  // case: if default=prerelease, but rc-wording is NOT set
-  if (version === 'prerelease' && preId) {
-    version = 'prerelease';
-    version = `${version} --preId=${preId}`;
+  const commitMessages = getGitCommits();
+
+  const {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion, foundPreReleaseId} = analyseVersionChange();
+
+
+  // case: if prerelease id not explicitly set, use the found prerelease id in commit messages
+  if (doPreReleaseVersion && !preReleaseId) {
+    preReleaseId = foundPreReleaseId;
   }
 
-  logInfo('version action after final decision:', version);
-
-  // case: if nothing of the above matches
-  if (version === null) {
-    logInfo('No version keywords found, skipping bump.');
-    return;
-  }
-
-  let currentVersionBranch = /refs\/[a-zA-Z]+\/(.*)/.exec(process.env.GITHUB_REF)[1];
-  let isPullRequest = false;
+  let currentBranch = /refs\/[a-zA-Z]+\/(.*)/.exec(process.env.GITHUB_REF)[1];
   if (process.env.GITHUB_HEAD_REF) {
     // Comes from a pull request
-    currentVersionBranch = process.env.GITHUB_HEAD_REF;
-    isPullRequest = true;
+    currentBranch = process.env.GITHUB_HEAD_REF;
   }
   if (targetBranch !== '') {
     // We want to override the branch that we are pulling / pushing to
-    currentVersionBranch = targetBranch;
+    currentBranch = targetBranch;
   }
-  logInfo('currentVersionBranch:', currentVersionBranch);
+  logInfo('current branch:', currentBranch);
   logInfo('Current version:', currentVersion, '/', 'version:', version);
 
   //Bump version
   const rawNewVersion = bumpVersion(currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPatchVersion);
   const completeNewVersion = `${tagPrefix}${rawNewVersion}`;
-
-
-  // now go to the actual branch to perform the same versioning
-  if (isPullRequest) {
-    // First fetch to get updated local version of branch
-    await runInWorkspace('git', ['fetch']);
-  }
+  
   return completeNewVersion;
 }

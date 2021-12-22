@@ -1,19 +1,19 @@
 {
-  "name": "gh-action-bump-version",
+  "name": "gh-action-asyncapi-bump-version",
+  "description": "GitHub action for bumping version of AsyncAPI documents with semantic release",
   "version": "0.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/phips28/gh-action-bump-version.git"
+    "url": "git+https://github.com/jonaslagoni/gh-action-asyncapi-bump-version.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Jonas Lagoni (jonas-lt@live.dk)",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/phips28/gh-action-bump-version/issues"
+    "url": "https://github.com/jonaslagoni/gh-action-asyncapi-bump-version/issues"
   },
-  "homepage": "https://github.com/phips28/gh-action-bump-version#readme",
-  "private": true,
-  "main": "index.js",
+  "homepage": "https://github.com/jonaslagoni/gh-action-asyncapi-bump-version#readme",
+  "main": "src/index.js",
   "scripts": {
     "start": "node ./index.js",
     "test": "npm run end-to-end-test",
