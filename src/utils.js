@@ -102,7 +102,6 @@ module.exports.analyseVersionChange = (majorWording, minorWording, patchWording,
   const doMinorVersion = false;
   const doPatchVersion = false;
   const doPreReleaseVersion = false;
-  let foundPreReleaseId = null;
   // case: if wording for MAJOR found
   if (
     commitMessages.some(
