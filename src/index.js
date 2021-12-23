@@ -16,7 +16,7 @@ const { exitSuccess, logError } = require('./utils');
     const targetBranch=  core.getInput('target-branch');
     const defaultBumpVersion = core.getInput('default-bump-version');
     const preReleaseId = core.getInput('pre-release-id');
-    const commitMessage = core.getInput('commit-message');
+    const commitMessageToUse = core.getInput('commit-message');
     const newVersion = await bumpVersion(tagPrefix,
       minorWording,
       majorWording,
@@ -29,7 +29,7 @@ const { exitSuccess, logError } = require('./utils');
       targetBranch,
       defaultBumpVersion,
       preReleaseId,
-      commitMessage);
+      commitMessageToUse);
     if(newVersion) {
       core.setOutput('newVersion', newVersion);
       exitSuccess('Version bumped!');

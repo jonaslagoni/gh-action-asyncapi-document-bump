@@ -84,43 +84,11 @@ module.exports.getGitCommits = () => {
   return event.commits ? event.commits.map((commit) => commit.message + '\n' + commit.body) : [];
 }
 
-module.exports.shouldBump = (commitMessage, commitMessages) => {
-  const commitMessageRegex = new RegExp(commitMessage.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
-  const alreadyBumped = commitMessages.find((message) => commitMessageRegex.test(message)) !== undefined;
-
-  if (alreadyBumped) {
-    exitSuccess('No action necessary because we found a previous bump!');
-    return false;
-  }
-
-  const {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion} = analyseVersionChange();
-
-  //Should we do any version updates? 
-  if (!doMajorVersion && !doMinorVersion && !doPatchVersion && !doPreReleaseVersion) {
-    logInfo('Could not find any version bump to make, skipping.');
-    return;
-  }
-
-
-  // case: if default=prerelease,
-  // rc-wording is also set
-  // and does not include any of rc-wording
-  // then unset it and do not run
-  if (
-    doPreReleaseVersion &&
-    preReleaseWords &&
-    !commitMessages.some((message) => preReleaseWords.some((word) => message.includes(word)))
-  ) {
-    logInfo('Default bump version sat to a nonexisting prerelease wording, skipping bump. Please add ');
-    return;
-  }
-  return true;
-}
 
 /**
  * Figure out which version change to do.
  */
-module.exports.analyseVersionChange = (commitMessages) => {
+module.exports.analyseVersionChange = (majorWording, minorWording, patchWording, rcWording, commitMessages) => {
 
   // input wordings for MAJOR, MINOR, PATCH, PRE-RELEASE
   const majorWords = majorWording.split(',');
@@ -157,7 +125,6 @@ module.exports.analyseVersionChange = (commitMessages) => {
     commitMessages.some((message) =>
       preReleaseWords.some((word) => {
         if (message.includes(word)) {
-          foundWord = word;
           return true;
         } else {
           return false;
@@ -165,13 +132,20 @@ module.exports.analyseVersionChange = (commitMessages) => {
       }),
     )
   ) {
-    foundPreReleaseId = foundWord.split('-')[1]; //Prerelease id are always 0.0.0-prerelease
     doPatchVersion = true;
   }
-  return {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion, foundPreReleaseId}
+  return {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion}
 }
-module.exports.findPreReleaseId = () => {
-
+module.exports.findPreReleaseId = (preReleaseWords, commitMessages) => {
+  let foundWord = undefined;
+  for (const commitMessage of commitMessages) {
+    for (const preReleaseWord of preReleaseWords) {
+      if (commitMessage.includes(preReleaseWord)) {
+        foundWord = preReleaseWord.split('-')[1];
+      }
+    }
+  }
+  return foundWord;
 }
 
 module.exports.setGitConfigs = async () => {
@@ -186,11 +160,11 @@ module.exports.setGitConfigs = async () => {
   await runInWorkspace('git', ['fetch']);
 
 }
-module.exports.commitChanges = async (newVersion) => {
+module.exports.commitChanges = async (newVersion, skipCommit, skipTag, skipPush, commitMessageToUse) => {
   try {
     // to support "actions/checkout@v1"
     if (!skipCommit) {
-      await runInWorkspace('git', ['commit', '-a', '-m', commitMessage.replace(/{{version}}/g, newVersion)]);
+      await runInWorkspace('git', ['commit', '-a', '-m', commitMessageToUse.replace(/{{version}}/g, newVersion)]);
     }
   } catch (e) {
     console.warn(

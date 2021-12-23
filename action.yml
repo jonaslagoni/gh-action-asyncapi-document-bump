@@ -3,9 +3,6 @@ description: Automated version bump AsyncAPI documents following Semantic Versio
 runs:
   using: node12
   main: index.js
-branding:
-  icon: chevron-up
-  color: blue
 inputs:
   tag-prefix:
     description: 'Prefix that is used for the git tag'
