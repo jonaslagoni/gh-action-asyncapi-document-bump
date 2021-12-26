@@ -1,4 +1,4 @@
-const { execSync } = require('child_process');
+const path = require('path');
 const {
   getAsyncAPIDocument,
   exitSuccess,
@@ -7,8 +7,10 @@ const {
   analyseVersionChange,
   bumpVersion,
   commitChanges,
-  logInfo
-} = require('./utils')
+  logInfo,
+  setGitConfigs,
+  writeNewVersion
+} = require('./utils');
 
 module.exports = async (
   tagPrefix,
@@ -24,16 +26,17 @@ module.exports = async (
   defaultBumpVersion,
   preReleaseId,
   commitMessageToUse) => {
+  const workspace = process.env.GITHUB_WORKSPACE;
   await setGitConfigs();
   pathToDocument = pathToDocument !== '' ? pathToDocument : path.join(workspace, 'asyncapi.json');
   const document = getAsyncAPIDocument(pathToDocument);
   const currentVersion = document.info.version.toString();
 
-  let version = defaultBumpVersion;
-  let preReleaseId = preReleaseId;
+  const version = defaultBumpVersion;
 
   const commitMessages = getGitCommits();
 
+  // eslint-disable-next-line security/detect-non-literal-regexp
   const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
   const alreadyBumped = commitMessages.find((message) => commitMessageRegex.test(message)) !== undefined;
 
@@ -50,8 +53,8 @@ module.exports = async (
   // then unset it and do not run
   if (
     doPreReleaseVersion &&
-    preReleaseWords &&
-    !commitMessages.some((message) => preReleaseWords.some((word) => message.includes(word)))
+    rcWording &&
+    !commitMessages.some((message) => rcWording.some((word) => message.includes(word)))
   ) {
     logInfo('Default bump version sat to a nonexisting prerelease wording, skipping bump. Please add ');
     return false;
@@ -65,10 +68,11 @@ module.exports = async (
   
   // case: if prerelease id not explicitly set, use the found prerelease id in commit messages
   if (doPreReleaseVersion && !preReleaseId) {
-    preReleaseId = findPreReleaseId(preReleaseWords, commitMessages);
+    preReleaseId = findPreReleaseId(rcWording, commitMessages);
   }
 
-  let currentBranch = /refs\/[a-zA-Z]+\/(.*)/.exec(process.env.GITHUB_REF)[1];
+  // eslint-disable-next-line security/detect-child-process
+  let currentBranch = (/refs\/[a-zA-Z]+\/(.*)/).exec(process.env.GITHUB_REF)[1];
   if (process.env.GITHUB_HEAD_REF) {
     // Comes from a pull request
     currentBranch = process.env.GITHUB_HEAD_REF;
@@ -85,4 +89,4 @@ module.exports = async (
   await writeNewVersion(newVersion, pathToDocument);
   await commitChanges(newVersion, skipCommit, skipTag, skipPush, commitMessageToUse);
   return true;
-}
+};

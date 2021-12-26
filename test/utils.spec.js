@@ -1,8 +1,8 @@
-const { logInfo, logError, bumpVersion, analyseVersionChange } = require("../src/utils");
+const { logInfo, logError, bumpVersion, analyseVersionChange } = require('../src/utils');
 describe('Utils', () => {
   afterEach(() => {
     jest.clearAllMocks();
-  })
+  });
   describe('logInfo', () => {
     test('should log correct message', () => {
       const spy = jest.spyOn(global.console, 'info').mockImplementation(() => { return; });

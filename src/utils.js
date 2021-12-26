@@ -1,38 +1,41 @@
+// eslint-disable-next-line security/detect-child-process
 const { spawn } = require('child_process');
 const { existsSync, promises } = require('fs');
-const { EOL, version } = require('os');
-const path = require('path');
+const { EOL } = require('os');
 const semverInc = require('semver/functions/inc');
 
-module.exports.getAsyncAPIDocument = function getAsyncAPIDocument(pathToDocument) {
+function getAsyncAPIDocument(pathToDocument) {
   if (!existsSync(pathToDocument)) throw new Error(`AsyncAPI document could not be found at ${pathToDocument}`);
+  // eslint-disable-next-line security/detect-non-literal-require
   return require(pathToDocument);
 }
 
-module.exports.logInfo = function logInfo(message) {
+function logInfo(message) {
   console.info(message);
 }
-module.exports.exitSuccess = function exitSuccess(message) {
+function exitSuccess(message) {
   logInfo(`✔  success   ${message}`);
   process.exit(0);
 }
 
-module.exports.exitFailure = function exitFailure(message) {
+function exitFailure(message) {
   logError(message);
   process.exit(1);
 }
 
-module.exports.logError = function logError(error) {
+function logError(error) {
   console.error(`✖  fatal     ${error.stack || error}`);
 }
 
-module.exports.writeNewVersion = async (newVersion, pathToDocument, asyncapiDocument) => {
+async function writeNewVersion(newVersion, pathToDocument, asyncapiDocument) {
   if (!existsSync(pathToDocument)) throw new Error(`AsyncAPI document could not be found at ${pathToDocument}`);
   asyncapiDocument.info.version = newVersion;
+  // eslint-disable-next-line security/detect-non-literal-fs-filename
   await promises.writeFile(pathToDocument, JSON.stringify(asyncapiDocument, null, 4));
 }
 
-module.exports.runInWorkspace = function runInWorkspace(command, args) {
+function runInWorkspace(command, args) {
+  const workspace = process.env.GITHUB_WORKSPACE;
   return new Promise((resolve, reject) => {
     const child = spawn(command, args, { cwd: workspace });
     let isDone = false;
@@ -64,42 +67,41 @@ module.exports.runInWorkspace = function runInWorkspace(command, args) {
  * @param {*} bumpPatchVersion 
  * @returns new version
  */
-module.exports.bumpVersion = (currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPatchVersion, bumpPreReleaseVersion, preReleaseId) => {
+function bumpVersion(currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPatchVersion, bumpPreReleaseVersion, preReleaseId) {
   let release;
-  if(bumpPreReleaseVersion) {
+  if (bumpPreReleaseVersion) {
     release = 'prerelease';
-  } else if(bumpMajorVersion) {
+  } else if (bumpMajorVersion) {
     release = 'major';
-  } else if(bumpMinorVersion) {
+  } else if (bumpMinorVersion) {
     release = 'minor';
-  } else if(bumpPatchVersion) {
+  } else if (bumpPatchVersion) {
     release = 'patch';
   }
   return semverInc(currentVersion, release, {}, preReleaseId);
 }
 
-module.exports.getGitCommits = () => {
+function getGitCommits() {
+  // eslint-disable-next-line security/detect-non-literal-require
   const event = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
   
   if (!event.commits) {
-    logInfo("Couldn't find any commits in this event, incrementing patch version...");
+    logInfo('Couldn\'t find any commits in this event, incrementing patch version...');
   }
-  return event.commits ? event.commits.map((commit) => commit.message + '\n' + commit.body) : [];
+  return event.commits ? event.commits.map((commit) => `${commit.message  }\n${  commit.body}`) : [];
 }
-
 
 /**
  * Figure out which version change to do.
  */
-module.exports.analyseVersionChange = (majorWording, minorWording, patchWording, rcWording, commitMessages) => {
-
+function analyseVersionChange(majorWording, minorWording, patchWording, rcWording, commitMessages) {
   // input wordings for MAJOR, MINOR, PATCH, PRE-RELEASE
   const majorWords = majorWording.split(',');
   const minorWords = minorWording.split(',');
   // patch is by default empty, and '' would always be true in the includes(''), thats why we handle it separately
   const patchWords = patchWording ? patchWording.split(',') : null;
   const preReleaseWords = rcWording ? rcWording.split(',') : null;
-  module.exports.logInfo('config words:', { majorWords, minorWords, patchWords, preReleaseWords });
+  logInfo(`config words: ${JSON.stringify({ majorWords, minorWords, patchWords, preReleaseWords })}`);
 
   let doMajorVersion = false;
   let doMinorVersion = false;
@@ -108,31 +110,28 @@ module.exports.analyseVersionChange = (majorWording, minorWording, patchWording,
   // case: if wording for MAJOR found
   if (
     commitMessages.some(
-      (message) => /^([a-zA-Z]+)(\(.+\))?(\!)\:/.test(message) || majorWords.some((word) => message.includes(word)),
+      // eslint-disable-next-line security/detect-unsafe-regex
+      (message) => (/^([a-zA-Z]+)(\(.+\))?(\!)\:/).test(message) || majorWords.some((word) => message.includes(word)),
     )
   ) {
     doMajorVersion = true;
-  }
-  // case: if wording for MINOR found
-  else if (commitMessages.some((message) => minorWords.some((word) => message.includes(word)))) {
+  } else if (commitMessages.some((message) => minorWords.some((word) => message.includes(word)))) {
+    // case: if wording for MINOR found
     doMinorVersion = true;
-  }
-  // case: if wording for PATCH found
-  else if (patchWords && 
+  } else if (patchWords && 
     commitMessages.some((message) => patchWords.some((word) => message.includes(word)))) {
+    // case: if wording for PATCH found
     doPatchVersion = true;
-  }
-  // case: if wording for PRE-RELEASE found
-  else if (
+  } else if (
     preReleaseWords &&
-    commitMessages.some((message) => preReleaseWords.some((word) => message.includes(word)))
-  ) {
+    commitMessages.some((message) => preReleaseWords.some((word) => message.includes(word)))) {
+    // case: if wording for PRE-RELEASE found
     doPreReleaseVersion = true;
   }
-  return {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion}
+  return {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion};
 }
 
-module.exports.findPreReleaseId = (preReleaseWords, commitMessages) => {
+function findPreReleaseId(preReleaseWords, commitMessages) {
   let foundWord = undefined;
   for (const commitMessage of commitMessages) {
     for (const preReleaseWord of preReleaseWords) {
@@ -144,7 +143,7 @@ module.exports.findPreReleaseId = (preReleaseWords, commitMessages) => {
   return foundWord;
 }
 
-module.exports.setGitConfigs = async () => {
+async function setGitConfigs() {
   // set git user
   await runInWorkspace('git', ['config', 'user.name', `"${process.env.GITHUB_USER || 'Automated Version Bump'}"`]);
   await runInWorkspace('git', [
@@ -156,7 +155,7 @@ module.exports.setGitConfigs = async () => {
   await runInWorkspace('git', ['fetch']);
 }
 
-module.exports.commitChanges = async (newVersion, skipCommit, skipTag, skipPush, commitMessageToUse) => {
+async function commitChanges(newVersion, skipCommit, skipTag, skipPush, commitMessageToUse) {
   try {
     // to support "actions/checkout@v1"
     if (!skipCommit) {
@@ -176,9 +175,23 @@ module.exports.commitChanges = async (newVersion, skipCommit, skipTag, skipPush,
       await runInWorkspace('git', ['push', remoteRepo, '--follow-tags']);
       await runInWorkspace('git', ['push', remoteRepo, '--tags']);
     }
-  } else {
-    if (!skipPush) {
-      await runInWorkspace('git', ['push', remoteRepo]);
-    }
+  } else if (!skipPush) {
+    await runInWorkspace('git', ['push', remoteRepo]);
   }
 }
+
+module.exports = {
+  getAsyncAPIDocument,
+  logInfo,
+  exitSuccess, 
+  exitFailure,
+  logError,
+  writeNewVersion,
+  runInWorkspace,
+  bumpVersion,
+  getGitCommits,
+  analyseVersionChange,
+  findPreReleaseId,
+  setGitConfigs,
+  commitChanges
+};

@@ -1,6 +1,6 @@
 const core = require('@actions/core');
 const bumpVersion = require('./bumper');
-const { exitSuccess, logError } = require('./utils');
+const { exitSuccess, logError, exitFailure } = require('./utils');
 
 (async () => {
   try {
@@ -30,7 +30,7 @@ const { exitSuccess, logError } = require('./utils');
       defaultBumpVersion,
       preReleaseId,
       commitMessageToUse);
-    if(newVersion) {
+    if (newVersion) {
       core.setOutput('newVersion', newVersion);
       exitSuccess('Version bumped!');
     }
