@@ -17,6 +17,7 @@
   "scripts": {
     "start": "node ./src/index.js",
     "test": "jest",
+    "lint": "eslint --max-warnings 0 --config \".eslintrc\" \".\"",
     "release": "semantic-release",
     "generate:assets": "echo nothing to run",
     "bump:version": "npm --no-git-tag-version --allow-same-version version $VERSION"
@@ -31,6 +32,10 @@
     "@semantic-release/npm": "^8.0.0",
     "@semantic-release/release-notes-generator": "^10.0.2",
     "conventional-changelog-conventionalcommits": "^4.6.1",
+    "eslint": "8.5.0",
+    "eslint-plugin-jest": "25.3.0",
+    "eslint-plugin-security": "1.4.0",
+    "eslint-plugin-sonarjs": "0.11.0",
     "semantic-release": "^18.0.0",
     "dotenv": "^10.0.0",
     "execa": "^5.1.1",
