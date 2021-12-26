@@ -1,18 +1,18 @@
 {
-  "name": "@lagoni/gh-action-asyncapi-bump-version",
+  "name": "@lagoni/gh-action-asyncapi-document-bump",
   "description": "GitHub action for bumping version of AsyncAPI documents with semantic release",
   "version": "0.0.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jonaslagoni/gh-action-asyncapi-bump-version.git"
+    "url": "git+https://github.com/jonaslagoni/gh-action-asyncapi-document-bump.git"
   },
   "keywords": [],
   "author": "Jonas Lagoni (jonas-lt@live.dk)",
   "license": "Apache-2.0",
   "bugs": {
-    "url": "https://github.com/jonaslagoni/gh-action-asyncapi-bump-version/issues"
+    "url": "https://github.com/jonaslagoni/gh-action-asyncapi-document-bump/issues"
   },
-  "homepage": "https://github.com/jonaslagoni/gh-action-asyncapi-bump-version#readme",
+  "homepage": "https://github.com/jonaslagoni/gh-action-asyncapi-document-bump#readme",
   "main": "src/index.js",
   "scripts": {
     "start": "node ./src/index.js",
