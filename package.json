@@ -6,6 +6,9 @@
     "type": "git",
     "url": "git+https://github.com/jonaslagoni/gh-action-asyncapi-document-bump.git"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "keywords": [],
   "author": "Jonas Lagoni (jonas-lt@live.dk)",
   "license": "Apache-2.0",
