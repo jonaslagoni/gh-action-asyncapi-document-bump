@@ -1,10 +1,11 @@
 const { spawn } = require('child_process');
-const { existsSync } = require('fs');
-const { EOL } = require('os');
+const { existsSync, promises } = require('fs');
+const { EOL, version } = require('os');
 const path = require('path');
+const semverInc = require('semver/functions/inc');
 
 module.exports.getAsyncAPIDocument = function getAsyncAPIDocument(pathToDocument) {
-  if (!existsSync(pathToDocument)) throw new Error("asyncapi.json could not be found in your project's root.");
+  if (!existsSync(pathToDocument)) throw new Error(`AsyncAPI document could not be found at ${pathToDocument}`);
   return require(pathToDocument);
 }
 
@@ -23,6 +24,12 @@ module.exports.exitFailure = function exitFailure(message) {
 
 module.exports.logError = function logError(error) {
   console.error(`✖  fatal     ${error.stack || error}`);
+}
+
+module.exports.writeNewVersion = async (newVersion, pathToDocument, asyncapiDocument) => {
+  if (!existsSync(pathToDocument)) throw new Error(`AsyncAPI document could not be found at ${pathToDocument}`);
+  asyncapiDocument.info.version = newVersion;
+  await promises.writeFile(pathToDocument, JSON.stringify(asyncapiDocument, null, 4));
 }
 
 module.exports.runInWorkspace = function runInWorkspace(command, args) {
@@ -55,24 +62,20 @@ module.exports.runInWorkspace = function runInWorkspace(command, args) {
  * @param {*} bumpMajorVersion 
  * @param {*} bumpMinorVersion 
  * @param {*} bumpPatchVersion 
- * @returns 
+ * @returns new version
  */
-module.exports.bumpVersion = (currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPatchVersion, bumpPreReleaseVersion, preReleaseId, pathToDocument) => {
+module.exports.bumpVersion = (currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPatchVersion, bumpPreReleaseVersion, preReleaseId) => {
+  let release;
   if(bumpPreReleaseVersion) {
-
+    release = 'prerelease';
+  } else if(bumpMajorVersion) {
+    release = 'major';
+  } else if(bumpMinorVersion) {
+    release = 'minor';
+  } else if(bumpPatchVersion) {
+    release = 'patch';
   }
-  if(bumpMajorVersion || bumpMinorVersion || bumpPatchVersion) {
-    const splitCurrentVersion = currentVersion.split('.').map(value => Number(value));
-    if(bumpMajorVersion) {
-      splitCurrentVersion[0]++;
-    } else if(bumpMinorVersion) {
-      splitCurrentVersion[1]++;
-    } else if(bumpPatchVersion) {
-      splitCurrentVersion[2]++;
-    }
-    const newRawVersion = splitCurrentVersion.join('.');
-    return `${tagPrefix}${newRawVersion}-${preReleaseId}`;
-  }
+  return semverInc(currentVersion, release, {}, preReleaseId);
 }
 
 module.exports.getGitCommits = () => {
@@ -96,12 +99,12 @@ module.exports.analyseVersionChange = (majorWording, minorWording, patchWording,
   // patch is by default empty, and '' would always be true in the includes(''), thats why we handle it separately
   const patchWords = patchWording ? patchWording.split(',') : null;
   const preReleaseWords = rcWording ? rcWording.split(',') : null;
-  logInfo('config words:', { majorWords, minorWords, patchWords, preReleaseWords });
+  module.exports.logInfo('config words:', { majorWords, minorWords, patchWords, preReleaseWords });
 
-  const doMajorVersion = false;
-  const doMinorVersion = false;
-  const doPatchVersion = false;
-  const doPreReleaseVersion = false;
+  let doMajorVersion = false;
+  let doMinorVersion = false;
+  let doPatchVersion = false;
+  let doPreReleaseVersion = false;
   // case: if wording for MAJOR found
   if (
     commitMessages.some(
@@ -115,26 +118,20 @@ module.exports.analyseVersionChange = (majorWording, minorWording, patchWording,
     doMinorVersion = true;
   }
   // case: if wording for PATCH found
-  else if (patchWords && commitMessages.some((message) => patchWords.some((word) => message.includes(word)))) {
+  else if (patchWords && 
+    commitMessages.some((message) => patchWords.some((word) => message.includes(word)))) {
     doPatchVersion = true;
   }
   // case: if wording for PRE-RELEASE found
   else if (
     preReleaseWords &&
-    commitMessages.some((message) =>
-      preReleaseWords.some((word) => {
-        if (message.includes(word)) {
-          return true;
-        } else {
-          return false;
-        }
-      }),
-    )
+    commitMessages.some((message) => preReleaseWords.some((word) => message.includes(word)))
   ) {
-    doPatchVersion = true;
+    doPreReleaseVersion = true;
   }
   return {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion}
 }
+
 module.exports.findPreReleaseId = (preReleaseWords, commitMessages) => {
   let foundWord = undefined;
   for (const commitMessage of commitMessages) {
@@ -157,8 +154,8 @@ module.exports.setGitConfigs = async () => {
   ]);
 
   await runInWorkspace('git', ['fetch']);
-
 }
+
 module.exports.commitChanges = async (newVersion, skipCommit, skipTag, skipPush, commitMessageToUse) => {
   try {
     // to support "actions/checkout@v1"

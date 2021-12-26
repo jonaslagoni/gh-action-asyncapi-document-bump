@@ -2,13 +2,12 @@ const { execSync } = require('child_process');
 const {
   getAsyncAPIDocument,
   exitSuccess,
-  exitFailure,
-  logError,
-  runInWorkspace,
-  bump,
   getGitCommits,
   findPreReleaseId,
-  analyseVersionChange
+  analyseVersionChange,
+  bumpVersion,
+  commitChanges,
+  logInfo
 } = require('./utils')
 
 module.exports = async (
@@ -82,7 +81,8 @@ module.exports = async (
   logInfo('Current version:', currentVersion, '/', 'version:', version);
 
   //Bump version
-  const newVersion = bumpVersion(currentVersion, doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion, preReleaseId, pathToDocument);
+  const newVersion = bumpVersion(currentVersion, doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion, preReleaseId);
+  await writeNewVersion(newVersion, pathToDocument);
   await commitChanges(newVersion, skipCommit, skipTag, skipPush, commitMessageToUse);
   return true;
 }

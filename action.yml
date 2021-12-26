@@ -22,7 +22,7 @@ inputs:
     required: false
   release-candidate-wording:
     description: 'Words list that trigger a release candidate version bump. Use \',\' to separate multiple words'
-    default: 'pre-alpha,pre-beta,pre-rc'
+    default: 'next'
     required: false
   skip-tag:
     description: 'Avoid to add a TAG to the version update commit'
@@ -39,7 +39,7 @@ inputs:
   path-to-asyncapi:
     description: 'Path to the AsyncAPI document to bump'
     default: ''
-    required: false
+    required: true
   target-branch:
     description: 'A separate branch to perform the version bump on'
     default: ''
@@ -50,7 +50,7 @@ inputs:
     required: false
   pre-release-id:
     description: 'Set a custom id for prerelease build'
-    default: 'rc'
+    default: 'next'
     required: false
   commit-message:
     description: 'Set a custom commit message for version bump commit. Use {{version}} as a placeholder for the new version.'
