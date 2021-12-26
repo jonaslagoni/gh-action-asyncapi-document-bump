@@ -1,0 +1,44 @@
+{
+  "name": "gh-action-asyncapi-bump-version",
+  "description": "GitHub action for bumping version of AsyncAPI documents with semantic release",
+  "version": "0.0.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jonaslagoni/gh-action-asyncapi-bump-version.git"
+  },
+  "keywords": [],
+  "author": "Jonas Lagoni (jonas-lt@live.dk)",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/jonaslagoni/gh-action-asyncapi-bump-version/issues"
+  },
+  "homepage": "https://github.com/jonaslagoni/gh-action-asyncapi-bump-version#readme",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node ./src/index.js",
+    "test": "jest",
+    "release": "semantic-release",
+    "generate:assets": "echo nothing to run",
+    "bump:version": "npm --no-git-tag-version --allow-same-version version $VERSION"
+  },
+  "dependencies": {
+    "@actions/core": "^1.6.0",
+    "semver": "^7.3.5"
+  },
+  "devDependencies": {
+    "@semantic-release/commit-analyzer": "^9.0.1",
+    "@semantic-release/github": "^8.0.1",
+    "@semantic-release/npm": "^8.0.0",
+    "@semantic-release/release-notes-generator": "^10.0.2",
+    "conventional-changelog-conventionalcommits": "^4.6.1",
+    "semantic-release": "^18.0.0",
+    "dotenv": "^10.0.0",
+    "execa": "^5.1.1",
+    "jest": "^25.5.4",
+    "js-yaml": "^4.1.0",
+    "node-fetch": "^2.6.1",
+    "prettier": "^2.3.0",
+    "standard": "^14.3.3",
+    "tiny-glob": "^0.2.9"
+  }
+}
