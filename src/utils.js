@@ -81,7 +81,21 @@ function bumpVersion(currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPat
   }
   return semverInc(currentVersion, release, {}, preReleaseId);
 }
-
+function collectReferences(asyncapi) {
+  const files = [];
+  const localCollector = (obj) => {
+    if (obj['$ref']) {
+      files.push(obj['$ref']);
+    }
+    for (const o of Object.values(obj || {})) {
+      if (typeof o === 'object') {
+        localCollector(o);
+      }
+    }
+  };
+  localCollector(asyncapi);
+  return files;
+}
 function getGitCommits(asyncapiFilePath, referencedFiles) {
   // eslint-disable-next-line security/detect-non-literal-require
   const event = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
@@ -102,7 +116,7 @@ function getGitCommits(asyncapiFilePath, referencedFiles) {
       }
     }
     return asyncapiDocumentChanged;
-  }).map((commit) => `${commit.message  }\n${  commit.body}`) : [];
+  }).map((commit) => `${commit.message}\n${commit.body}`) : [];
 }
 
 /**
@@ -207,5 +221,6 @@ module.exports = {
   analyseVersionChange,
   findPreReleaseId,
   setGitConfigs,
-  commitChanges
+  commitChanges,
+  collectReferences
 };

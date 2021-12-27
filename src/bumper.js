@@ -9,7 +9,8 @@ const {
   commitChanges,
   logInfo,
   setGitConfigs,
-  writeNewVersion
+  writeNewVersion,
+  collectReferences
 } = require('./utils');
 
 module.exports = async (
@@ -25,13 +26,12 @@ module.exports = async (
   targetBranch,
   defaultBumpVersion,
   preReleaseId,
-  commitMessageToUse,
-  referencedFiles) => {
+  commitMessageToUse) => {
   const workspace = process.env.GITHUB_WORKSPACE;
   await setGitConfigs();
   pathToDocument = pathToDocument !== '' ? pathToDocument : path.join(workspace, 'asyncapi.json');
-  referencedFiles = referencedFiles !== '' ? referencedFiles : referencedFiles.split(',').map((file) => path.join(workspace, file));
   const document = getAsyncAPIDocument(pathToDocument);
+  const referencedFiles = collectReferences(document);
   const currentVersion = document.info.version.toString();
 
   const version = defaultBumpVersion;

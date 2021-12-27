@@ -4,10 +4,6 @@ runs:
   using: node12
   main: index.js
 inputs:
-  referenced-files:
-    description: 'Files that the AsyncAPI document references, this is used to know if the AsyncAPI file have changed or not. Use \',\' to separate multiple files'
-    default: ''
-    required: false
   tag-prefix:
     description: 'Prefix that is used for the git tag'
     default: ''
