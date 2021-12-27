@@ -1,0 +1,13 @@
+name: Lint PR yaml files
+
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+
+jobs:
+    lint:
+      runs-on: ubuntu-latest
+      steps:
+        - uses: actions/checkout@v2
+        - name: yaml-lint
+          uses: ibiqlik/action-yamllint@v3
