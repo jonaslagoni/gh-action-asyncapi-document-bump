@@ -101,12 +101,12 @@ function getRelatedGitCommits(asyncapiFilePath, referencedFiles, gitEvents, work
     //Filter out any commits that dont modify our AsyncAPI file or referenced files
     const commitMessages =  gitEvents.commits.filter((commit) => {
       const modifiedFiles = (commit.modified || []).map((modifiedFilePath) => {
-        return path.join(workspacePath, modifiedFilePath);
+        return path.resolve(workspacePath, modifiedFilePath);
       });
       logInfo(`Modified files for ${commit.message}: ${JSON.stringify(modifiedFiles, null, 4)}`);
-      const asyncapiDocumentChanged = modifiedFiles.includes(asyncapiFilePath);
+      const asyncapiDocumentChanged = modifiedFiles.includes(path.resolve(asyncapiFilePath));
       for (const referencedFile of referencedFiles) {
-        if (modifiedFiles.includes(referencedFile)) {
+        if (modifiedFiles.includes(path.resolve(referencedFile))) {
           return true;
         }
       }
