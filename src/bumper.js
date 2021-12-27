@@ -25,16 +25,18 @@ module.exports = async (
   targetBranch,
   defaultBumpVersion,
   preReleaseId,
-  commitMessageToUse) => {
+  commitMessageToUse,
+  referencedFiles) => {
   const workspace = process.env.GITHUB_WORKSPACE;
   await setGitConfigs();
   pathToDocument = pathToDocument !== '' ? pathToDocument : path.join(workspace, 'asyncapi.json');
+  referencedFiles = referencedFiles !== '' ? referencedFiles : referencedFiles.split(',').map((file) => path.join(workspace, file));
   const document = getAsyncAPIDocument(pathToDocument);
   const currentVersion = document.info.version.toString();
 
   const version = defaultBumpVersion;
 
-  const commitMessages = getGitCommits(pathToDocument);
+  const commitMessages = getGitCommits(pathToDocument, referencedFiles);
 
   // eslint-disable-next-line security/detect-non-literal-regexp
   const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
