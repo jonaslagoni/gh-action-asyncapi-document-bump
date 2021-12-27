@@ -1,7 +1,7 @@
 {
   "name": "@lagoni/gh-action-asyncapi-document-bump",
   "description": "GitHub action for bumping version of AsyncAPI documents with semantic release",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jonaslagoni/gh-action-asyncapi-document-bump.git"
