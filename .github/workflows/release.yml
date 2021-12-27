@@ -16,7 +16,6 @@ on:
 
 jobs:
   # Add required jobs that need to go through before releasing
-  # test:
   test:
     name: Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
