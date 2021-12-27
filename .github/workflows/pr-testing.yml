@@ -1,0 +1,33 @@
+---
+name: PR testing
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited, ready_for_review]
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - name: Set git to use LF #to once and for all finish neverending fight between Unix and Windows
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+          cache: 'npm'
+          cache-dependency-path: '**/package-lock.json'
+      - name: Install dependencies
+        run: npm install
+      - name: Test
+        run: npm test
+      - name: Run linter
+        run: npm run lint
+      - name: Run release assets generation to make sure PR does not break it
+        run: npm run generate:assets
