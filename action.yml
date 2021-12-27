@@ -10,7 +10,7 @@ inputs:
     default: ''
     required: false
   minor-wording:
-    description:  |
+    description: |
       Words list that trigger a minor version bump.
       Use "," to separate multiple words.
     default: 'feat'
