@@ -27,6 +27,9 @@ module.exports = async (
   defaultBumpVersion,
   preReleaseId,
   commitMessageToUse) => {
+  // eslint-disable-next-line security/detect-non-literal-require
+  const gitEvents = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
+  logInfo(`Found the following git events: ${JSON.stringify(gitEvents, null, 4)}`);
   const workspace = process.env.GITHUB_WORKSPACE;
   await setGitConfigs();
   pathToDocument = path.join(workspace, pathToDocument);
@@ -36,7 +39,7 @@ module.exports = async (
 
   const version = defaultBumpVersion;
 
-  const commitMessages = getRelatedGitCommits(pathToDocument, referencedFiles);
+  const commitMessages = getRelatedGitCommits(pathToDocument, referencedFiles, gitEvents, workspace);
 
   // eslint-disable-next-line security/detect-non-literal-regexp
   const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');

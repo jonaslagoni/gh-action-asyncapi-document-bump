@@ -96,17 +96,14 @@ function collectReferences(asyncapi) {
   localCollector(asyncapi);
   return files;
 }
-function getRelatedGitCommits(asyncapiFilePath, referencedFiles) {
-  // eslint-disable-next-line security/detect-non-literal-require
-  const event = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
-  
-  if (event.commits) {  
+function getRelatedGitCommits(asyncapiFilePath, referencedFiles, gitEvents, workspacePath) {
+  if (gitEvents.commits) {  
     //Filter out any commits that dont modify our AsyncAPI file or referenced files
-    const workspace = process.env.GITHUB_WORKSPACE;
-    return event.commits ? event.commits.filter((commit) => {
+    const commitMessages =  gitEvents.commits.filter((commit) => {
       const modifiedFiles = (commit.modified || []).map((modifiedFilePath) => {
-        path.join(workspace, modifiedFilePath);
+        return path.join(workspacePath, modifiedFilePath);
       });
+      logInfo(`Modified files for ${commit.message}: ${JSON.stringify(modifiedFiles, null, 4)}`);
       const asyncapiDocumentChanged = modifiedFiles.includes(asyncapiFilePath);
       for (const referencedFile of referencedFiles) {
         if (modifiedFiles.includes(referencedFile)) {
@@ -114,7 +111,11 @@ function getRelatedGitCommits(asyncapiFilePath, referencedFiles) {
         }
       }
       return asyncapiDocumentChanged;
-    }).map((commit) => `${commit.message}\n${commit.body}`) : [];
+    }).map((commit) => `${commit.message}\n${commit.body || ''}`);
+    if (commitMessages.length === 0) {
+      exitFailure('After filtering commits, none matched the AsyncAPI document or referenced files');
+    }
+    return commitMessages;
   } 
   exitFailure('Could not find any commits, existing');
 }
