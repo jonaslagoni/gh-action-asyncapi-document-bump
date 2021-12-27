@@ -46,6 +46,13 @@ describe('Utils', () => {
       const relatedCommits = getRelatedGitCommits(asyncapiFilePath, referencedFiles, events, '');
       expect(relatedCommits).toEqual(['message\n']);
     });
+    test('should match correct workflow path', () => {
+      const asyncapiFilePath = '/test/workspace/asyncapi.json';
+      const referencedFiles = ['/test/workspace/components/test.json'];
+      const events = {commits: [{message: 'message', modified: ['components/test.json']}]};
+      const relatedCommits = getRelatedGitCommits(asyncapiFilePath, referencedFiles, events, '/test/workspace');
+      expect(relatedCommits).toEqual(['message\n']);
+    });
   });
   describe('logInfo', () => {
     test('should log correct message', () => {
