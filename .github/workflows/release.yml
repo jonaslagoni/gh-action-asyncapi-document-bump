@@ -1,3 +1,4 @@
+---
 name: Release
 
 env:
@@ -44,7 +45,7 @@ jobs:
       - name: Run release assets generation to make sure PR does not break it
         run: npm run generate:assets
   release:
-    # TODO: make sure to require other jobs to successfully complete before releasing 
+    # TODO: make sure to require other jobs to successfully complete before releasing
     needs: test
     name: semantic release pipeline
     runs-on: ubuntu-latest

@@ -81,21 +81,42 @@ function bumpVersion(currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPat
   }
   return semverInc(currentVersion, release, {}, preReleaseId);
 }
-
-function getGitCommits(asyncapiFilePath) {
+function collectReferences(asyncapi) {
+  const files = [];
+  const localCollector = (obj) => {
+    if (obj['$ref']) {
+      files.push(obj['$ref']);
+    }
+    for (const o of Object.values(obj || {})) {
+      if (typeof o === 'object') {
+        localCollector(o);
+      }
+    }
+  };
+  localCollector(asyncapi);
+  return files;
+}
+function getGitCommits(asyncapiFilePath, referencedFiles) {
   // eslint-disable-next-line security/detect-non-literal-require
   const event = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
   
   if (!event.commits) {
     logInfo('Couldn\'t find any commits in this event, incrementing patch version...');
   }
-  //Filter out any commits that dont modify our AsyncAPI file
+  //Filter out any commits that dont modify our AsyncAPI file or referenced files
   const workspace = process.env.GITHUB_WORKSPACE;
   return event.commits ? event.commits.filter((commit) => {
-    (commit.modified || []).map((modifiedFilePath) => {
+    const modifiedFiles = (commit.modified || []).map((modifiedFilePath) => {
       path.join(workspace, modifiedFilePath);
-    }).includes(asyncapiFilePath);
-  }).map((commit) => `${commit.message  }\n${  commit.body}`) : [];
+    });
+    const asyncapiDocumentChanged = modifiedFiles.includes(asyncapiFilePath);
+    for (const referencedFile of referencedFiles) {
+      if (modifiedFiles.includes(referencedFile)) {
+        return true;
+      }
+    }
+    return asyncapiDocumentChanged;
+  }).map((commit) => `${commit.message}\n${commit.body}`) : [];
 }
 
 /**
@@ -200,5 +221,6 @@ module.exports = {
   analyseVersionChange,
   findPreReleaseId,
   setGitConfigs,
-  commitChanges
+  commitChanges,
+  collectReferences
 };
