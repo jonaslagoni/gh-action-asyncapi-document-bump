@@ -115,9 +115,8 @@ function getRelatedGitCommits(asyncapiFilePath, referencedFiles) {
       }
       return asyncapiDocumentChanged;
     }).map((commit) => `${commit.message}\n${commit.body}`) : [];
-  } else {
-    exitFailure("Could not find any commits, existing");
-  }
+  } 
+  exitFailure('Could not find any commits, existing');
 }
 
 /**
