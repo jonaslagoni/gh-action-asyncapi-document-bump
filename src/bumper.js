@@ -29,7 +29,7 @@ module.exports = async (
   commitMessageToUse) => {
   const workspace = process.env.GITHUB_WORKSPACE;
   await setGitConfigs();
-  pathToDocument = pathToDocument !== '' ? pathToDocument : path.join(workspace, 'asyncapi.json');
+  pathToDocument = path.join(workspace, pathToDocument);
   const document = getAsyncAPIDocument(pathToDocument);
   const referencedFiles = collectReferences(document);
   const currentVersion = document.info.version.toString();
