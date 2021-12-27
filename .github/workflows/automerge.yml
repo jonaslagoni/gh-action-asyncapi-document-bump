@@ -39,8 +39,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               labels: ['autoapproved']
-            }) 
-
+            })
   automerge:
     needs: [autoapprove]
     if: github.event.pull_request.user.login == 'jonaslagoni'

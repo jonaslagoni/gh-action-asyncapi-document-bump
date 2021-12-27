@@ -1,14 +1,11 @@
 ---
 name: Bump version
-
 env:
   GH_USER: jonaslagoni <jonas-lt@live.dk>
-
-on: 
+on:
   release:
     types: 
       - published
-
 jobs:
   version_bump:
     name: Generate assets and bump package version
@@ -39,4 +36,4 @@ jobs:
           author: ${{env.GH_USER}}
           title: 'chore(release): ${{github.event.release.tag_name}}'
           body: 'Version bump in package.json for release [${{github.event.release.tag_name}}](${{github.event.release.html_url}})'
-          branch: version-bump/${{github.event.release.tag_name}} 
+          branch: version-bump/${{github.event.release.tag_name}}

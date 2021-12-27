@@ -1,8 +1,6 @@
 ---
 name: Automated Version Bump for AsyncAPI
-description: | 
-  Automated version bump for 
-  AsyncAPI documents to follow Semantic Versioning.
+description: Automated version bump for AsyncAPI documents to follow Semantic Versioning.
 runs:
   using: node12
   main: index.js
@@ -13,25 +11,25 @@ inputs:
     required: false
   minor-wording:
     description:  |
-      Words list that trigger a minor version bump. 
+      Words list that trigger a minor version bump.
       Use "," to separate multiple words.
     default: 'feat'
     required: false
   major-wording:
     description: |
-      Words list that trigger a major version bump. 
+      Words list that trigger a major version bump.
       Use "," to separate multiple words.
     default: 'feat!,fix!,refactor!'
     required: false
   patch-wording:
     description: |
-      Words list that trigger a patch version bump. 
+      Words list that trigger a patch version bump.
       Use "," to separate multiple words.
     default: 'fix'
     required: false
   release-candidate-wording:
     description: |
-      Words list that trigger a release candidate version bump. 
+      Words list that trigger a release candidate version bump.
       Use "," to separate multiple words.
     default: 'next'
     required: false
@@ -65,7 +63,7 @@ inputs:
     required: false
   commit-message:
     description: |
-      Set a custom commit message for version bump commit. 
+      Set a custom commit message for version bump commit.
       Use {{version}} as a placeholder for the new version.
     default: 'ci: version bump to {{version}}'
     required: false
