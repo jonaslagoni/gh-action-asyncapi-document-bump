@@ -34,7 +34,7 @@ module.exports = async (
 
   const version = defaultBumpVersion;
 
-  const commitMessages = getGitCommits();
+  const commitMessages = getGitCommits(pathToDocument);
 
   // eslint-disable-next-line security/detect-non-literal-regexp
   const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');

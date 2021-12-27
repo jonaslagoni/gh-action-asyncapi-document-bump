@@ -3,6 +3,7 @@ const { spawn } = require('child_process');
 const { existsSync, promises } = require('fs');
 const { EOL } = require('os');
 const semverInc = require('semver/functions/inc');
+const path = require('path');
 
 function getAsyncAPIDocument(pathToDocument) {
   if (!existsSync(pathToDocument)) throw new Error(`AsyncAPI document could not be found at ${pathToDocument}`);
@@ -81,14 +82,20 @@ function bumpVersion(currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPat
   return semverInc(currentVersion, release, {}, preReleaseId);
 }
 
-function getGitCommits() {
+function getGitCommits(asyncapiFilePath) {
   // eslint-disable-next-line security/detect-non-literal-require
   const event = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
   
   if (!event.commits) {
     logInfo('Couldn\'t find any commits in this event, incrementing patch version...');
   }
-  return event.commits ? event.commits.map((commit) => `${commit.message  }\n${  commit.body}`) : [];
+  //Filter out any commits that dont modify our AsyncAPI file
+  const workspace = process.env.GITHUB_WORKSPACE;
+  return event.commits ? event.commits.filter((commit) => {
+    (commit.modified || []).map((modifiedFilePath) => {
+      path.join(workspace, modifiedFilePath);
+    }).includes(asyncapiFilePath);
+  }).map((commit) => `${commit.message  }\n${  commit.body}`) : [];
 }
 
 /**
