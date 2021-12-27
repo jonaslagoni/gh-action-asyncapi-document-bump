@@ -47,8 +47,8 @@ inputs:
     required: false
   path-to-asyncapi:
     description: 'Path to the AsyncAPI document to bump'
-    default: ''
-    required: true
+    default: './asyncapi.json'
+    required: false
   target-branch:
     description: 'A separate branch to perform the version bump on'
     default: ''
