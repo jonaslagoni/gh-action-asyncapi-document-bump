@@ -96,27 +96,28 @@ function collectReferences(asyncapi) {
   localCollector(asyncapi);
   return files;
 }
-function getGitCommits(asyncapiFilePath, referencedFiles) {
+function getRelatedGitCommits(asyncapiFilePath, referencedFiles) {
   // eslint-disable-next-line security/detect-non-literal-require
   const event = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
   
-  if (!event.commits) {
-    logInfo('Couldn\'t find any commits in this event, incrementing patch version...');
-  }
-  //Filter out any commits that dont modify our AsyncAPI file or referenced files
-  const workspace = process.env.GITHUB_WORKSPACE;
-  return event.commits ? event.commits.filter((commit) => {
-    const modifiedFiles = (commit.modified || []).map((modifiedFilePath) => {
-      path.join(workspace, modifiedFilePath);
-    });
-    const asyncapiDocumentChanged = modifiedFiles.includes(asyncapiFilePath);
-    for (const referencedFile of referencedFiles) {
-      if (modifiedFiles.includes(referencedFile)) {
-        return true;
+  if (event.commits) {  
+    //Filter out any commits that dont modify our AsyncAPI file or referenced files
+    const workspace = process.env.GITHUB_WORKSPACE;
+    return event.commits ? event.commits.filter((commit) => {
+      const modifiedFiles = (commit.modified || []).map((modifiedFilePath) => {
+        path.join(workspace, modifiedFilePath);
+      });
+      const asyncapiDocumentChanged = modifiedFiles.includes(asyncapiFilePath);
+      for (const referencedFile of referencedFiles) {
+        if (modifiedFiles.includes(referencedFile)) {
+          return true;
+        }
       }
-    }
-    return asyncapiDocumentChanged;
-  }).map((commit) => `${commit.message}\n${commit.body}`) : [];
+      return asyncapiDocumentChanged;
+    }).map((commit) => `${commit.message}\n${commit.body}`) : [];
+  } else {
+    exitFailure("Could not find any commits, existing");
+  }
 }
 
 /**
@@ -217,7 +218,7 @@ module.exports = {
   writeNewVersion,
   runInWorkspace,
   bumpVersion,
-  getGitCommits,
+  getRelatedGitCommits,
   analyseVersionChange,
   findPreReleaseId,
   setGitConfigs,

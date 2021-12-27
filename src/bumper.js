@@ -2,7 +2,7 @@ const path = require('path');
 const {
   getAsyncAPIDocument,
   exitSuccess,
-  getGitCommits,
+  getRelatedGitCommits,
   findPreReleaseId,
   analyseVersionChange,
   bumpVersion,
@@ -36,7 +36,7 @@ module.exports = async (
 
   const version = defaultBumpVersion;
 
-  const commitMessages = getGitCommits(pathToDocument, referencedFiles);
+  const commitMessages = getRelatedGitCommits(pathToDocument, referencedFiles);
 
   // eslint-disable-next-line security/detect-non-literal-regexp
   const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
