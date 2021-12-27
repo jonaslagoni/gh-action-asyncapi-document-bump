@@ -3,7 +3,7 @@ name: Automated Version Bump for AsyncAPI
 description: Automated version bump for AsyncAPI documents to follow Semantic Versioning.
 runs:
   using: node12
-  main: index.js
+  main: src/index.js
 inputs:
   tag-prefix:
     description: 'Prefix that is used for the git tag'
