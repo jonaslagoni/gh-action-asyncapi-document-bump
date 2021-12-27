@@ -9,19 +9,19 @@ inputs:
     default: ''
     required: false
   minor-wording:
-    description: 'Words list that trigger a minor version bump. Use \',\' to separate multiple words'
+    description: 'Words list that trigger a minor version bump. Use "," to separate multiple words'
     default: 'feat'
     required: false
   major-wording:
-    description: 'Words list that trigger a major version bump. Use \',\' to separate multiple words'
+    description: 'Words list that trigger a major version bump. Use "," to separate multiple words'
     default: 'feat!,fix!,refactor!'
     required: false
   patch-wording:
-    description: 'Words list that trigger a patch version bump. Use \',\' to separate multiple words'
+    description: 'Words list that trigger a patch version bump. Use "," to separate multiple words'
     default: 'fix'
     required: false
   release-candidate-wording:
-    description: 'Words list that trigger a release candidate version bump. Use \',\' to separate multiple words'
+    description: 'Words list that trigger a release candidate version bump. Use "," to separate multiple words'
     default: 'next'
     required: false
   skip-tag:
