@@ -1,7 +1,25 @@
-const { logInfo, logError, bumpVersion, analyseVersionChange } = require('../src/utils');
+const { logInfo, logError, bumpVersion, analyseVersionChange, collectReferences } = require('../src/utils');
 describe('Utils', () => {
   afterEach(() => {
     jest.clearAllMocks();
+  });
+  describe('collectReferences', () => {
+    test('should collect correct references', () => {
+      const obj = {
+        test: {
+          $ref: '1',
+          test: {
+            $ref: '2'
+          }
+        },
+        test2: {
+          $ref: '3'
+        }
+      };
+      const list = collectReferences(obj);
+      const expectedList = ['1', '2', '3'];
+      expect(list).toEqual(expectedList);
+    });
   });
   describe('logInfo', () => {
     test('should log correct message', () => {
