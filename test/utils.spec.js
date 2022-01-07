@@ -1,4 +1,4 @@
-const { logInfo, logError, bumpVersion, analyseVersionChange, collectReferences, getRelatedGitCommits } = require('../src/utils');
+const { logInfo, logError, bumpVersion, analyseVersionChange, collectReferences } = require('../src/utils');
 
 describe('Utils', () => {
   afterEach(() => {
