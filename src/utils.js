@@ -4,6 +4,7 @@ const { existsSync, promises } = require('fs');
 const { EOL } = require('os');
 const semverInc = require('semver/functions/inc');
 const path = require('path');
+const github = require('@actions/github');
 
 function getAsyncAPIDocument(pathToDocument) {
   if (!existsSync(pathToDocument)) throw new Error(`AsyncAPI document could not be found at ${pathToDocument}`);
@@ -81,11 +82,20 @@ function bumpVersion(currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPat
   }
   return semverInc(currentVersion, release, {}, preReleaseId);
 }
-function collectReferences(asyncapi) {
+
+/**
+ * Collect all references files and find the absolute path based on workspace path
+ * 
+ * @param {*} asyncapi 
+ * @returns 
+ */
+function collectReferences(asyncapiObject, asyncapiFilePath) {
   const files = [];
   const localCollector = (obj) => {
-    if (obj['$ref']) {
-      files.push(obj['$ref']);
+    const ref = obj['$ref'];
+    if (ref) {
+      const absoluteRefPath = path.parse(asyncapiFilePath, ref);
+      files.push(absoluteRefPath);
     }
     for (const o of Object.values(obj || {})) {
       if (typeof o === 'object') {
@@ -93,31 +103,44 @@ function collectReferences(asyncapi) {
       }
     }
   };
-  localCollector(asyncapi);
+  localCollector(asyncapiObject);
   return files;
 }
-function getRelatedGitCommits(asyncapiFilePath, referencedFiles, gitEvents, workspacePath) {
-  if (gitEvents.commits) {  
-    //Filter out any commits that dont modify our AsyncAPI file or referenced files
-    const commitMessages =  gitEvents.commits.filter((commit) => {
-      const modifiedFiles = (commit.modified || []).map((modifiedFilePath) => {
-        return path.resolve(workspacePath, modifiedFilePath);
-      });
-      logInfo(`Modified files for ${commit.message}: ${JSON.stringify(modifiedFiles, null, 4)}`);
-      const asyncapiDocumentChanged = modifiedFiles.includes(path.resolve(asyncapiFilePath));
-      for (const referencedFile of referencedFiles) {
-        if (modifiedFiles.includes(path.resolve(referencedFile))) {
-          return true;
-        }
-      }
-      return asyncapiDocumentChanged;
-    }).map((commit) => `${commit.message}\n${commit.body || ''}`);
-    if (commitMessages.length === 0) {
-      exitFailure('After filtering commits, none matched the AsyncAPI document or referenced files');
-    }
-    return commitMessages;
-  } 
-  exitFailure('Could not find any commits, existing');
+
+async function getRelatedGitCommits(relatedFiles, gitEvents, githubToken, workspacePath,) {
+  const client = github.getOctokit(githubToken);
+  //Make sure that the file paths are relative to the workspace path.
+  relatedFiles = relatedFiles.map((relatedFile) => {
+    return path.relative(workspacePath, relatedFile);
+  });
+
+  const response = await client.rest.repos.listCommits({
+    owner: gitEvents.repository.owner,
+    repo: gitEvents.repository.name,
+    files: relatedFiles
+  });
+
+  // Ensure that the request was successful.
+  if (response.status !== 200) {
+    exitFailure(
+      `The GitHub API for comparing the base and head commits for this ${gitEvents.eventName} event returned ${response.status}, expected 200. ` +
+        'Please submit an issue on this action\'s GitHub repo.'
+    );
+  }
+  
+  // Ensure that the head commit is ahead of the base commit.
+  if (response.data.status !== 'ahead') {
+    exitFailure(
+      `The head commit for this ${gitEvents.eventName} event is not ahead of the base commit. ` +
+        'Please submit an issue on this action\'s GitHub repo.'
+    );
+  }
+  const commits = response.commits;
+  const commitMessages = commits.map((commit) => `${commit.message}\n${commit.body || ''}`);
+  if (commitMessages.length === 0) {
+    exitFailure('After filtering commits, none matched the AsyncAPI document or referenced files');
+  }
+  return commitMessages;
 }
 
 /**
