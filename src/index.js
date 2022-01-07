@@ -14,7 +14,6 @@ const { exitSuccess, logError, exitFailure } = require('./utils');
     const skipPush = core.getBooleanInput('skip-push');
     const pathToDocument = core.getInput('path-to-asyncapi');
     const targetBranch=  core.getInput('target-branch');
-    const defaultBumpVersion = core.getInput('default-bump-version');
     const preReleaseId = core.getInput('pre-release-id');
     const commitMessageToUse = core.getInput('commit-message');
     const newVersion = await bumpVersion(tagPrefix,
@@ -27,7 +26,6 @@ const { exitSuccess, logError, exitFailure } = require('./utils');
       skipPush,
       pathToDocument,
       targetBranch,
-      defaultBumpVersion,
       preReleaseId,
       commitMessageToUse);
     if (newVersion) {

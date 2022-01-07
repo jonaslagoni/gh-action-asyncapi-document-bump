@@ -24,7 +24,6 @@ module.exports = async (
   skipPush,
   pathToDocument,
   targetBranch,
-  defaultBumpVersion,
   preReleaseId,
   commitMessageToUse) => {
   // eslint-disable-next-line security/detect-non-literal-require
@@ -37,8 +36,6 @@ module.exports = async (
   const document = getAsyncAPIDocument(pathToDocument);
   const referencedFiles = collectReferences(document);
   const currentVersion = document.info.version.toString();
-
-  const version = defaultBumpVersion;
 
   const commitMessages = getRelatedGitCommits([pathToDocument, ...referencedFiles], gitEvents, token, workspace);
 
@@ -75,7 +72,7 @@ module.exports = async (
     currentBranch = targetBranch;
   }
   logInfo('Current branch:', currentBranch);
-  logInfo('Current version:', currentVersion, '/', 'version:', version);
+  logInfo('Current version:', currentVersion);
 
   //Bump version
   const newVersion = bumpVersion(currentVersion, doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion, preReleaseId);
