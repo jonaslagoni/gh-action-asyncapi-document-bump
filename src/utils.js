@@ -107,7 +107,16 @@ function collectReferences(asyncapiObject, asyncapiFilePath) {
   return files;
 }
 
-async function getRelatedGitCommits(relatedFiles, gitEvents, githubToken, workspacePath,) {
+/**
+ * Get all the commits related to the AsyncAPI document
+ *  
+ * @param {*} relatedFiles 
+ * @param {*} gitEvents 
+ * @param {*} githubToken 
+ * @param {*} workspacePath 
+ * @returns 
+ */
+async function getRelatedGitCommits(relatedFiles, gitEvents, githubToken, workspacePath) {
   const client = github.getOctokit(githubToken);
   //Make sure that the file paths are relative to the workspace path.
   relatedFiles = relatedFiles.map((relatedFile) => {
