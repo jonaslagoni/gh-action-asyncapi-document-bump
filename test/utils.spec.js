@@ -1,5 +1,5 @@
 const { logInfo, logError, bumpVersion, analyseVersionChange, collectReferences } = require('../src/utils');
-
+const path = require('path');
 describe('Utils', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -17,8 +17,9 @@ describe('Utils', () => {
           $ref: './3.json'
         }
       };
-      const list = collectReferences(obj, '/test/test');
-      const expectedList = ['/test/test/1.json', '/test/test/2.json', '/test/test/3.json'];
+      const workspacePath = '/test/test';
+      const list = collectReferences(obj, workspacePath);
+      const expectedList = [path.resolve(workspacePath, '1.json'), path.resolve(workspacePath, '2.json'), path.resolve(workspacePath, '3.json')];
       expect(list).toEqual(expectedList);
     });
   });
