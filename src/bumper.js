@@ -34,7 +34,7 @@ module.exports = async (
   await setGitConfigs();
   pathToDocument = path.join(workspace, pathToDocument);
   const document = getAsyncAPIDocument(pathToDocument);
-  const referencedFiles = collectReferences(document);
+  const referencedFiles = collectReferences(document, pathToDocument);
   const currentVersion = document.info.version.toString();
 
   const commitMessages = getRelatedGitCommits([pathToDocument, ...referencedFiles], gitEvents, token, workspace);

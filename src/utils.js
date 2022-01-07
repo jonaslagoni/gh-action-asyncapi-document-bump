@@ -96,7 +96,7 @@ function collectReferences(asyncapiObject, asyncapiFilePath) {
   const localCollector = (obj) => {
     const ref = obj['$ref'];
     if (ref) {
-      const absoluteRefPath = path.parse(asyncapiFilePath, ref);
+      const absoluteRefPath = path.resolve(asyncapiFilePath, ref);
       files.push(absoluteRefPath);
     }
     for (const o of Object.values(obj || {})) {
