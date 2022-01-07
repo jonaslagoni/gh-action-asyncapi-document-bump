@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@actions/core": "^1.6.0",
+    "@actions/github": "^5.0.0",
     "semver": "^7.3.5"
   },
   "devDependencies": {
@@ -35,17 +36,17 @@
     "@semantic-release/npm": "^8.0.0",
     "@semantic-release/release-notes-generator": "^10.0.2",
     "conventional-changelog-conventionalcommits": "^4.6.1",
+    "dotenv": "^10.0.0",
     "eslint": "8.5.0",
     "eslint-plugin-jest": "25.3.0",
     "eslint-plugin-security": "1.4.0",
     "eslint-plugin-sonarjs": "0.11.0",
-    "semantic-release": "^18.0.0",
-    "dotenv": "^10.0.0",
     "execa": "^5.1.1",
     "jest": "^25.5.4",
     "js-yaml": "^4.1.0",
     "node-fetch": "^2.6.1",
     "prettier": "^2.3.0",
+    "semantic-release": "^18.0.0",
     "standard": "^14.3.3",
     "tiny-glob": "^0.2.9"
   }

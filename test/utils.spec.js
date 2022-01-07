@@ -1,4 +1,5 @@
-const { logInfo, logError, bumpVersion, analyseVersionChange, collectReferences, getRelatedGitCommits } = require('../src/utils');
+const { logInfo, logError, bumpVersion, analyseVersionChange, collectReferences } = require('../src/utils');
+
 describe('Utils', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -7,51 +8,18 @@ describe('Utils', () => {
     test('should collect correct references', () => {
       const obj = {
         test: {
-          $ref: '1',
+          $ref: './1.json',
           test: {
-            $ref: '2'
+            $ref: './2.json'
           }
         },
         test2: {
-          $ref: '3'
+          $ref: './3.json'
         }
       };
-      const list = collectReferences(obj);
-      const expectedList = ['1', '2', '3'];
+      const list = collectReferences(obj, '/test/test');
+      const expectedList = ['/test/test/1.json', '/test/test/2.json', '/test/test/3.json'];
       expect(list).toEqual(expectedList);
-    });
-  });
-  describe('getRelatedGitCommits', () => {
-    test('should exit when no commits', () => {
-      const spy = jest.spyOn(global.process, 'exit').mockImplementationOnce(() => {});
-      jest.spyOn(global.console, 'info').mockImplementation(() => { return; });
-      jest.spyOn(global.console, 'error').mockImplementation(() => { return; });
-      const asyncapiFilePath = 'asyncapi.json';
-      const referencedFiles = [];
-      const events = {commits: []};
-      getRelatedGitCommits(asyncapiFilePath, referencedFiles, events, '');
-      expect(spy).toHaveBeenCalled();
-    });
-    test('should filter asyncapi file modification', () => {
-      const asyncapiFilePath = 'asyncapi.json';
-      const referencedFiles = [];
-      const events = {commits: [{message: 'message', modified: ['asyncapi.json']}]};
-      const relatedCommits = getRelatedGitCommits(asyncapiFilePath, referencedFiles, events, '');
-      expect(relatedCommits).toEqual(['message\n']);
-    });
-    test('should filter events referenced file modifications', () => {
-      const asyncapiFilePath = 'asyncapi.json';
-      const referencedFiles = ['components/test.json'];
-      const events = {commits: [{message: 'message', modified: ['components/test.json']}]};
-      const relatedCommits = getRelatedGitCommits(asyncapiFilePath, referencedFiles, events, '');
-      expect(relatedCommits).toEqual(['message\n']);
-    });
-    test('should match correct workflow path', () => {
-      const asyncapiFilePath = '/test/workspace/asyncapi.json';
-      const referencedFiles = ['/test/workspace/components/test.json'];
-      const events = {commits: [{message: 'message', modified: ['components/test.json']}]};
-      const relatedCommits = getRelatedGitCommits(asyncapiFilePath, referencedFiles, events, '/test/workspace');
-      expect(relatedCommits).toEqual(['message\n']);
     });
   });
   describe('logInfo', () => {

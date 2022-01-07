@@ -30,37 +30,25 @@ module.exports = async (
   const gitEvents = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
   logInfo(`Found the following git events: ${JSON.stringify(gitEvents, null, 4)}`);
   const workspace = process.env.GITHUB_WORKSPACE;
+  const token = process.env.GITHUB_TOKEN;
   await setGitConfigs();
   pathToDocument = path.join(workspace, pathToDocument);
   const document = getAsyncAPIDocument(pathToDocument);
-  const referencedFiles = collectReferences(document);
+  const referencedFiles = collectReferences(document, pathToDocument);
   const currentVersion = document.info.version.toString();
 
-  const commitMessages = getRelatedGitCommits(pathToDocument, referencedFiles, gitEvents, workspace);
+  const commitMessages = getRelatedGitCommits([pathToDocument, ...referencedFiles], gitEvents, token, workspace);
 
   // eslint-disable-next-line security/detect-non-literal-regexp
   const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
-  const alreadyBumped = commitMessages.find((message) => commitMessageRegex.test(message)) !== undefined;
+  const latestCommitIsBump = commitMessageRegex.test(commitMessages[0]);
 
-  if (alreadyBumped) {
-    exitSuccess('No action necessary because we found a previous bump!');
+  if (latestCommitIsBump) {
+    exitSuccess('No action necessary because latest commit was a bump!');
     return false;
   }
 
   const {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion} = analyseVersionChange(majorWording, minorWording, patchWording, rcWording, commitMessages);
-
-  // case: if default=prerelease,
-  // rc-wording is also set
-  // and does not include any of rc-wording
-  // then unset it and do not run
-  if (
-    doPreReleaseVersion &&
-    rcWording &&
-    !commitMessages.some((message) => rcWording.some((word) => message.includes(word)))
-  ) {
-    logInfo('Default bump version sat to a nonexisting prerelease wording, skipping bump. Please add ');
-    return false;
-  }
 
   //Should we do any version updates? 
   if (!doMajorVersion && !doMinorVersion && !doPatchVersion && !doPreReleaseVersion) {
