@@ -53,12 +53,8 @@ inputs:
     description: 'A separate branch to perform the version bump on'
     default: ''
     required: false
-  default-bump-version:
-    description: 'Set a default version bump to use'
-    default: 'patch'
-    required: false
   pre-release-id:
-    description: 'Set a custom id for prerelease build'
+    description: 'Set a custom id for pre-release build'
     default: 'next'
     required: false
   commit-message:

@@ -66,6 +66,8 @@ function runInWorkspace(command, args) {
  * @param {*} bumpMajorVersion 
  * @param {*} bumpMinorVersion 
  * @param {*} bumpPatchVersion 
+ * @param {*} bumpPreReleaseVersion 
+ * @param {*} preReleaseId 
  * @returns new version
  */
 function bumpVersion(currentVersion, bumpMajorVersion, bumpMinorVersion, bumpPatchVersion, bumpPreReleaseVersion, preReleaseId) {
