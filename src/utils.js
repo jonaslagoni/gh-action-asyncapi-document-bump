@@ -134,23 +134,16 @@ async function getCommitMessages(relatedFiles, gitEvents, githubToken, workspace
   // Ensure that the request was successful.
   if (response.status !== 200) {
     exitFailure(
-      `The GitHub API for comparing the base and head commits for this ${gitEvents.eventName} event returned ${response.status}, expected 200. ` +
+      `The GitHub API for for getting commits returned ${response.status}, expected 200. ` +
         'Please submit an issue on this action\'s GitHub repo.'
     );
   }
   
-  // Ensure that the head commit is ahead of the base commit.
-  if (response.data.status !== 'ahead') {
-    exitFailure(
-      `The head commit for this ${gitEvents.eventName} event is not ahead of the base commit. ` +
-        'Please submit an issue on this action\'s GitHub repo.'
-    );
-  }
-  const commits = response.commits;
+  const commits = response.data;
   if (commits.length === 0) {
     exitFailure('After filtering commits, none matched the AsyncAPI document or referenced files');
   }
-  return commits.map((commit) => `${commit.message}\n${commit.body || ''}`);
+  return commits.map((commitEvent) => `${commitEvent.commit.message}\n${commitEvent.commit.body || ''}`);
 }
 
 /**
