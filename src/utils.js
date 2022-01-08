@@ -118,7 +118,7 @@ function collectReferences(asyncapiObject, asyncapiFilePath) {
  * @param {*} workspacePath 
  * @returns 
  */
-async function getRelatedGitCommits(relatedFiles, gitEvents, githubToken, workspacePath) {
+async function getCommitMessages(relatedFiles, gitEvents, githubToken, workspacePath) {
   const client = github.getOctokit(githubToken);
   //Make sure that the file paths are relative to the workspace path.
   relatedFiles = relatedFiles.map((relatedFile) => {
@@ -147,11 +147,10 @@ async function getRelatedGitCommits(relatedFiles, gitEvents, githubToken, worksp
     );
   }
   const commits = response.commits;
-  const commitMessages = commits.map((commit) => `${commit.message}\n${commit.body || ''}`);
-  if (commitMessages.length === 0) {
+  if (commits.length === 0) {
     exitFailure('After filtering commits, none matched the AsyncAPI document or referenced files');
   }
-  return commitMessages;
+  return commits.map((commit) => `${commit.message}\n${commit.body || ''}`);
 }
 
 /**
@@ -252,7 +251,7 @@ module.exports = {
   writeNewVersion,
   runInWorkspace,
   bumpVersion,
-  getRelatedGitCommits,
+  getCommitMessages,
   analyseVersionChange,
   findPreReleaseId,
   setGitConfigs,
