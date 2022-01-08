@@ -167,3 +167,14 @@ Set a custom commit message for version bump commit. Useful for skipping additio
   with:
     commit-message: 'CI: bumps version to {{version}} [skip ci]'
 ```
+
+#### **dry-run:**
+This makes sure that no changes are made to the AsyncAPI document and no changes are committed. Use this to determine if any bumps is necessary (optional). Example:
+```yaml
+- name:  'Automated Version Bump'
+  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  with:
+    dry-run:  'true'
+```

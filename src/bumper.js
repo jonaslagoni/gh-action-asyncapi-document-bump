@@ -1,4 +1,5 @@
 const path = require('path');
+const core = require('@actions/core');
 const {
   getAsyncAPIDocument,
   exitSuccess,
@@ -25,7 +26,8 @@ module.exports = async (
   pathToDocument,
   targetBranch,
   preReleaseId,
-  commitMessageToUse) => {
+  commitMessageToUse,
+  dryRun) => {
   // eslint-disable-next-line security/detect-non-literal-require
   const gitEvents = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
   logInfo(`Found the following git events: ${JSON.stringify(gitEvents, null, 4)}`);
@@ -37,6 +39,7 @@ module.exports = async (
   const referencedFiles = collectReferences(document, pathToDocument);
   logInfo(`Found referenced files: ${JSON.stringify(referencedFiles, null, 4)}`);
   const currentVersion = document.info.version.toString();
+  core.setOutput('oldVersion', currentVersion);
   logInfo(`Current version of AsyncAPI document: ${currentVersion}`);
 
   const commitMessages = await getCommitMessages([pathToDocument, ...referencedFiles], gitEvents, token, workspace);
@@ -92,8 +95,11 @@ module.exports = async (
 
   //Bump version
   const newVersion = bumpVersion(currentVersion, doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion, preReleaseId);
+  core.setOutput('newVersion', newVersion);
   logInfo(`New version for AsyncAPI document: ${newVersion}`);
-  await writeNewVersion(newVersion, pathToDocument);
-  await commitChanges(newVersion, skipCommit, skipTag, skipPush, commitMessageToUse);
+  if (dryRun === false) {
+    await writeNewVersion(newVersion, pathToDocument, document);
+    await commitChanges(newVersion, skipCommit, skipTag, skipPush, commitMessageToUse);
+  }
   return true;
 };

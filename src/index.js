@@ -9,6 +9,7 @@ const { exitSuccess, logError, exitFailure } = require('./utils');
     const majorWording = core.getInput('major-wording');
     const patchWording = core.getInput('patch-wording');
     const rcWording = core.getInput('release-candidate-wording');
+    const dryRun = core.getBooleanInput('dry-run');
     const skipTag = core.getBooleanInput('skip-tag');
     const skipCommit = core.getBooleanInput('skip-commit');
     const skipPush = core.getBooleanInput('skip-push');
@@ -16,7 +17,7 @@ const { exitSuccess, logError, exitFailure } = require('./utils');
     const targetBranch=  core.getInput('target-branch');
     const preReleaseId = core.getInput('pre-release-id');
     const commitMessageToUse = core.getInput('commit-message');
-    const newVersion = await bumpVersion(tagPrefix,
+    const wasBumped = await bumpVersion(tagPrefix,
       minorWording,
       majorWording,
       patchWording,
@@ -27,9 +28,10 @@ const { exitSuccess, logError, exitFailure } = require('./utils');
       pathToDocument,
       targetBranch,
       preReleaseId,
-      commitMessageToUse);
-    if (newVersion) {
-      core.setOutput('newVersion', newVersion);
+      commitMessageToUse, 
+      dryRun);
+    if (wasBumped) {
+      core.setOutput('wasBumped', wasBumped);
       exitSuccess('Version bumped!');
     }
   } catch (err) {
