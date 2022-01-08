@@ -124,7 +124,8 @@ async function getCommitMessages(relatedFiles, gitEvents, githubToken, workspace
   relatedFiles = relatedFiles.map((relatedFile) => {
     return path.relative(workspacePath, relatedFile);
   });
-
+  logInfo(`Related files to find commits for: ${JSON.stringify(relatedFiles, null, 4)}`);
+  
   const response = await client.rest.repos.listCommits({
     owner: gitEvents.repository.organization,
     repo: gitEvents.repository.name,
