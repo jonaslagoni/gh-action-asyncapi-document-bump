@@ -58,8 +58,11 @@ module.exports = async (
     return false;
   }
 
+  let relevantCommitMessages = commitMessages;
   // Splice the commit messages to only contain those who are after bump commit
-  const relevantCommitMessages = commitMessages.slice(0, commitIndexOfBump-1);
+  if (commitIndexOfBump !== undefined) {
+    relevantCommitMessages = commitMessages.slice(0, commitIndexOfBump-1);
+  }
   logInfo(`Relevant commit messages: ${JSON.stringify(relevantCommitMessages, null, 4)}`);
 
   const {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion} = analyseVersionChange(majorWording, minorWording, patchWording, rcWording, relevantCommitMessages);

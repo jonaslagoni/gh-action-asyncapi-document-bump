@@ -96,7 +96,8 @@ function collectReferences(asyncapiObject, asyncapiFilePath) {
   const localCollector = (obj) => {
     const ref = obj['$ref'];
     if (ref) {
-      const absoluteRefPath = path.resolve(asyncapiFilePath, ref);
+      const filepathWithoutFragment = ref.split('#')[0];
+      const absoluteRefPath = path.resolve(path.dirname(asyncapiFilePath), filepathWithoutFragment);
       files.push(absoluteRefPath);
     }
     for (const o of Object.values(obj || {})) {
@@ -106,7 +107,7 @@ function collectReferences(asyncapiObject, asyncapiFilePath) {
     }
   };
   localCollector(asyncapiObject);
-  return files;
+  return [...new Set(files)];
 }
 
 /**
@@ -125,7 +126,7 @@ async function getCommitMessages(relatedFiles, gitEvents, githubToken, workspace
     return path.relative(workspacePath, relatedFile);
   });
   logInfo(`Related files to find commits for: ${JSON.stringify(relatedFiles, null, 4)}`);
-  
+
   const response = await client.rest.repos.listCommits({
     owner: gitEvents.repository.organization,
     repo: gitEvents.repository.name,

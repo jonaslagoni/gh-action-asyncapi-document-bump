@@ -15,11 +15,15 @@ describe('Utils', () => {
         },
         test2: {
           $ref: './3.json'
+        },
+        test2Fragment: {
+          $ref: './3.json#test'
         }
       };
-      const workspacePath = '/test/test';
-      const list = collectReferences(obj, workspacePath);
-      const expectedList = [path.resolve(workspacePath, '1.json'), path.resolve(workspacePath, '2.json'), path.resolve(workspacePath, '3.json')];
+      const rootPath = '/test/';
+      const asyncapiFilePath = `${rootPath}asyncapi.json`;
+      const list = collectReferences(obj, asyncapiFilePath);
+      const expectedList = [path.resolve(rootPath, '1.json'), path.resolve(rootPath, '2.json'), path.resolve(rootPath, '3.json')];
       expect(list).toEqual(expectedList);
     });
   });
