@@ -57,7 +57,7 @@ inputs:
     description: 'Set a custom id for pre-release build'
     default: 'next'
     required: false
-  dry-run: 
+  dry-run:
     description: 'This makes sure that no changes are made to the AsyncAPI document and no changes are committed. Use this to determine if any bumps is necessary.'
     default: 'false'
     required: false
