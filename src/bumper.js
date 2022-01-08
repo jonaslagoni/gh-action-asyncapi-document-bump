@@ -37,7 +37,7 @@ module.exports = async (
   const referencedFiles = collectReferences(document, pathToDocument);
   const currentVersion = document.info.version.toString();
 
-  const commitMessages = getCommitMessages([pathToDocument, ...referencedFiles], gitEvents, token, workspace);
+  const commitMessages = await getCommitMessages([pathToDocument, ...referencedFiles], gitEvents, token, workspace);
   logInfo('Found commit messages: ', commitMessages);
 
   // eslint-disable-next-line security/detect-non-literal-regexp
