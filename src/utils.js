@@ -126,7 +126,7 @@ async function getCommitMessages(relatedFiles, gitEvents, githubToken, workspace
   });
 
   const response = await client.rest.repos.listCommits({
-    owner: gitEvents.repository.owner,
+    owner: gitEvents.repository.organization,
     repo: gitEvents.repository.name,
     files: relatedFiles
   });
