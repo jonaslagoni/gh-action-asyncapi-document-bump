@@ -2,7 +2,7 @@ const path = require('path');
 const {
   getAsyncAPIDocument,
   exitSuccess,
-  getRelatedGitCommits,
+  getCommitMessages,
   findPreReleaseId,
   analyseVersionChange,
   bumpVersion,
@@ -37,18 +37,30 @@ module.exports = async (
   const referencedFiles = collectReferences(document, pathToDocument);
   const currentVersion = document.info.version.toString();
 
-  const commitMessages = getRelatedGitCommits([pathToDocument, ...referencedFiles], gitEvents, token, workspace);
+  const commitMessages = getCommitMessages([pathToDocument, ...referencedFiles], gitEvents, token, workspace);
+  logInfo('Found commit messages: ', commitMessages);
 
   // eslint-disable-next-line security/detect-non-literal-regexp
   const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
-  const latestCommitIsBump = commitMessageRegex.test(commitMessages[0]);
-
-  if (latestCommitIsBump) {
-    exitSuccess('No action necessary because latest commit was a bump!');
-    return false;
+  let commitIndexOfBump = undefined;
+  // Find the latest commit that matches release commit message
+  for (const [index, commitMessage] of commitMessages.entries()) {
+    const commitIsBump = commitMessageRegex.test(commitMessage);
+    if (commitIsBump) {
+      commitIndexOfBump = index;
+    }
   }
 
-  const {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion} = analyseVersionChange(majorWording, minorWording, patchWording, rcWording, commitMessages);
+  if (commitIndexOfBump === 1) {
+    exitSuccess('No action necessary because latest commit was a bump!');
+    return;
+  }
+
+  // Splice the commit messages to only contain those who are after bump commit
+  const relevantCommitMessages = commitMessages.slice(0, commitIndexOfBump-1);
+  logInfo('Relevant commit messages: ', relevantCommitMessages);
+
+  const {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion} = analyseVersionChange(majorWording, minorWording, patchWording, rcWording, relevantCommitMessages);
 
   //Should we do any version updates? 
   if (!doMajorVersion && !doMinorVersion && !doPatchVersion && !doPreReleaseVersion) {
@@ -58,7 +70,7 @@ module.exports = async (
   
   // case: if prerelease id not explicitly set, use the found prerelease id in commit messages
   if (doPreReleaseVersion && !preReleaseId) {
-    preReleaseId = findPreReleaseId(rcWording, commitMessages);
+    preReleaseId = findPreReleaseId(rcWording, relevantCommitMessages);
   }
 
   // eslint-disable-next-line security/detect-child-process
