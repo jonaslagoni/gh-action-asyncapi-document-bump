@@ -1,4 +1,4 @@
-const { logInfo, logError, bumpVersion, analyseVersionChange, collectReferences } = require('../src/utils');
+const { logInfo, logError, bumpVersion, analyseVersionChange, collectReferences, getRelevantCommitMessages } = require('../src/utils');
 const path = require('path');
 describe('Utils', () => {
   afterEach(() => {
@@ -25,6 +25,29 @@ describe('Utils', () => {
       const list = collectReferences(obj, asyncapiFilePath);
       const expectedList = [path.resolve(rootPath, '1.json'), path.resolve(rootPath, '2.json'), path.resolve(rootPath, '3.json')];
       expect(list).toEqual(expectedList);
+    });
+  });
+  describe('getRelevantCommitMessages', () => {
+    test('should return relevant commit messages up until release commit', () => {
+      const messages = [
+        'feat: new test something description\n',
+        'ci: fixed commit message not matched\n',
+        'chore(release): test something v0.3.0 (#6)\n',
+        'feat: new test something description\n'
+      ];
+      const relevantCommitMessages = getRelevantCommitMessages(messages, 'chore\\(release\\): test something v{{version}}', '');
+      expect(relevantCommitMessages).toEqual([
+        'feat: new test something description\n',
+        'ci: fixed commit message not matched\n'
+      ]);
+    });
+    test('should return no commits if release is the latest commit', () => {
+      const messages = [
+        'chore(release): test something v0.3.0 (#6)\n',
+        'feat: new test something description\n'
+      ];
+      const relevantCommitMessages = getRelevantCommitMessages(messages, 'chore\\(release\\): test something v{{version}}', '');
+      expect(relevantCommitMessages).toEqual([]);
     });
   });
   describe('logInfo', () => {

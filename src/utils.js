@@ -149,6 +149,34 @@ async function getCommitMessages(relatedFiles, gitEvents, githubToken, workspace
 }
 
 /**
+ * Get all the commits up until the release commit
+ * 
+ * @param {*} commitMessages 
+ * @param {*} commitMessageToUse 
+ * @param {*} tagPrefix 
+ * @returns 
+ */
+function getRelevantCommitMessages(commitMessages, commitMessageToUse, tagPrefix) {
+  // eslint-disable-next-line security/detect-non-literal-regexp
+  const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
+  let commitIndexOfBump = undefined;
+  // Find the latest commit that matches release commit message
+  for (const [index, commitMessage] of commitMessages.entries()) {
+    const commitIsBump = commitMessageRegex.test(commitMessage);
+    if (commitIsBump) {
+      commitIndexOfBump = index;
+      break;
+    }
+  }
+
+  let relevantCommitMessages = commitMessages;
+  // Splice the commit messages to only contain those who are after bump commit
+  if (commitIndexOfBump !== undefined) {
+    relevantCommitMessages = commitMessages.slice(0, commitIndexOfBump);
+  }
+  return relevantCommitMessages;
+}
+/**
  * Figure out which version change to do.
  */
 function analyseVersionChange(majorWording, minorWording, patchWording, rcWording, commitMessages) {
@@ -251,5 +279,6 @@ module.exports = {
   findPreReleaseId,
   setGitConfigs,
   commitChanges,
-  collectReferences
+  collectReferences,
+  getRelevantCommitMessages
 };

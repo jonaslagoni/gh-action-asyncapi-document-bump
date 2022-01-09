@@ -2,7 +2,6 @@ const path = require('path');
 const core = require('@actions/core');
 const {
   getAsyncAPIDocument,
-  exitSuccess,
   getCommitMessages,
   findPreReleaseId,
   analyseVersionChange,
@@ -11,7 +10,9 @@ const {
   logInfo,
   setGitConfigs,
   writeNewVersion,
-  collectReferences
+  collectReferences,
+  getRelevantCommitMessages,
+  exitSuccess
 } = require('./utils');
 
 module.exports = async (
@@ -45,28 +46,12 @@ module.exports = async (
   const commitMessages = await getCommitMessages([pathToDocument, ...referencedFiles], gitEvents, token, workspace);
   logInfo(`Found commit messages: ${JSON.stringify(commitMessages, null, 4)}`);
 
-  // eslint-disable-next-line security/detect-non-literal-regexp
-  const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
-  let commitIndexOfBump = undefined;
-  // Find the latest commit that matches release commit message
-  for (const [index, commitMessage] of commitMessages.entries()) {
-    const commitIsBump = commitMessageRegex.test(commitMessage);
-    if (commitIsBump) {
-      commitIndexOfBump = index;
-    }
-  }
-
-  if (commitIndexOfBump === 1) {
+  const relevantCommitMessages = getRelevantCommitMessages(commitMessages, commitMessageToUse, tagPrefix);
+  logInfo(`Relevant commit messages: ${JSON.stringify(relevantCommitMessages, null, 4)}`);
+  if (relevantCommitMessages.length === 0) {
     exitSuccess('No action necessary because latest commit was a bump!');
     return false;
   }
-
-  let relevantCommitMessages = commitMessages;
-  // Splice the commit messages to only contain those who are after bump commit
-  if (commitIndexOfBump !== undefined) {
-    relevantCommitMessages = commitMessages.slice(0, commitIndexOfBump-1);
-  }
-  logInfo(`Relevant commit messages: ${JSON.stringify(relevantCommitMessages, null, 4)}`);
 
   const {doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion} = analyseVersionChange(majorWording, minorWording, patchWording, rcWording, relevantCommitMessages);
 
@@ -95,7 +80,7 @@ module.exports = async (
 
   //Bump version
   const newVersion = bumpVersion(currentVersion, doMajorVersion, doMinorVersion, doPatchVersion, doPreReleaseVersion, preReleaseId);
-  core.setOutput('newVersion', newVersion);
+  core.setOutput('newVersion', `${newVersion}`);
   logInfo(`New version for AsyncAPI document: ${newVersion}`);
   if (dryRun === false) {
     await writeNewVersion(newVersion, pathToDocument, document);
