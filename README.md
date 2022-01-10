@@ -5,10 +5,76 @@ GitHub action used to bump the AsyncAPI document version in similar fashion to [
 
 It analyses the commit messages to figure out how to appropriately bump the AsyncAPI document version while following semver.
 
-**Attention**
+**Restrictions**
+These are the current restrictions:
+- Only support **JSON** format for the AsyncAPI document and not **YAML**.
+- Cannot be triggered by nested references, as we only look for references in the AsyncAPI document.
+- 
+## Usage
+You can use this action in different scenarios, below is a few use-cases.
 
-- Make sure you use the `actions/checkout@v2` action before this, otherwise the GH action do not have access to the AsyncAPI document!
-- Currently only **JSON** format are supported and not **YAML**.
+### Automated push to main
+For each commit on the `main` branch, try make a bump release for service X.
+```yaml
+name: Bump AsyncAPI for X
+on:
+  push:
+    branches:
+      - main
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Automated Version Bump
+        id: version_bump
+        uses: jonaslagoni/gh-action-asyncapi-document-bump@main
+        env:
+          GITHUB_TOKEN: '${{ secrets.GH_TOKEN }}'
+        with:
+          path-to-asyncapi: ./x_asyncapi.json
+          commit-message: 'release: x-service v{{version}}'
+```
+### Through PR's
+
+For each commit on the `main` branch, check if we need to do a bump through a PR.
+
+```yaml
+name: Bump AsyncAPI for X
+on:
+  push:
+    branches:
+      - main
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+      - name: Automated Version Bump
+        id: version_bump
+        uses: jonaslagoni/gh-action-asyncapi-document-bump@main
+        env:
+          GITHUB_TOKEN: '${{ secrets.GH_TOKEN }}'
+        with:
+          path-to-asyncapi: ./x_asyncapi.json
+          skip-tag: 'true'
+          skip-commit: 'true'
+          # Match commit message from PR creation, to know what commit are bump release. Match `commit-message` from PR creation.
+          commit-message: 'chore\(release\): x-service v{{version}}'
+      - if: steps.version_bump.outputs.wasBumped == 'true'
+        name: Create Pull Request with bumped version
+        uses: peter-evans/create-pull-request@v3
+        with:
+          token: '${{ secrets.GH_TOKEN }}'
+          commit-message: 'chore(release): x-service v${{steps.version_bump.outputs.newVersion}}'
+          committer: 'bot <bot@bot.com>'
+          author: 'bot <bot@bot.com>'
+          title: 'chore(release): x-service v${{steps.version_bump.outputs.newVersion}}'
+          body: Version bump x-service
+          branch: 'version-bump/v${{steps.version_bump.outputs.newVersion}}'
+```
 
 ## Outputs
 The GitHub action support different outputs that can be used in other jobs to control or modify workflows.
@@ -53,128 +119,18 @@ Access the new version of the AsyncAPI document after the version was bumped.
 
 ### Customization
 
-#### **wording:** 
-Customize the messages that triggers which version bump. It must be a string, case sensitive and comma separated (optional). Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    minor-wording:  'add,Adds,new'
-    major-wording:  'MAJOR,cut-major'
-    patch-wording:  'patch,fixes'     # Providing patch-wording will override commits
-                                      # defaulting to a patch bump.
-    release-candidate-wording:     'RELEASE,alpha'
-```
-
-#### **pre-id:**
-Set a pre-id value will building prerelease version  (optional - defaults to 'rc'). Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    default: prerelease
-    pre-id: 'prc'
-```
-
-#### **tag-prefix:**
-Prefix that is used for the git tag  (optional). Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    tag-prefix:  'v'
-```
-
-#### **skip-tag:**
-The tag is not added to the git repository  (optional). Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    skip-tag:  'true'
-```
-
-#### **skip-commit:**
-No commit is made after the version is bumped (optional). Must be used in combination with `skip-tag`, since if there's no commit, there's nothing to tag. Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    skip-commit:  'true'
-    skip-tag: 'true'
-```
-
-#### **skip-push:**
-If true, skip pushing any commits or tags created after the version bump (optional). Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    skip-push:  'true'
-```
-
-#### **path-to-asyncapi:**
-Set a custom path to the asyncapi document. Useful in cases such as updating the version on main after a tag has been set (optional). Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    path-to-asyncapi: './asyncapi.json'
-```
-
-#### **target-branch:**
-Set a custom target branch to use when bumping the version. Useful in cases such as updating the version on main after a tag has been set (optional). Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    target-branch: 'main'
-```
-#### **pre-release-id:**
-Set a custom pre-release id. Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    pre-release-id: 'next'
-```
-
-#### **commit-message:**
-Set a custom commit message for version bump commit. Useful for skipping additional workflows run on push. Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    commit-message: 'CI: bumps version to {{version}} [skip ci]'
-```
-
-#### **dry-run:**
-This makes sure that no changes are made to the AsyncAPI document and no changes are committed. Use this to determine if any bumps is necessary (optional). Example:
-```yaml
-- name:  'Automated Version Bump'
-  uses:  'jonaslagoni/gh-action-asyncapi-document-bump@main'
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  with:
-    dry-run:  'true'
-```
+| input | description | type | default | 
+|---|---|---|---|
+| minor-wording | Used to match wordings for commit messages that will trigger a minor version change. Use ',' to separate multiple values. | string | 'feat' |
+| patch-wording | Used to match wordings for commit messages that will trigger a patch version change. Use ',' to separate multiple values. | string | 'fix' |
+| major-wording | Used to match wordings for commit messages that will trigger a major version change. Use ',' to separate multiple values. | string | 'feat!,fix!,refactor!' |
+| release-candidate-wording | Used to match wordings for commit messages that will trigger a RC version change. Use ',' to separate multiple values. | string | 'next' |
+| tag-prefix | Prefix that is used for the git tag | string | '' |
+| skip-tag | Skip tagging the commit | boolean | 'true' |
+| skip-commit | No commit is made after the version is bumped. Must be used in combination with `skip-tag`, since if there's no commit, there's nothing to tag. | boolean | 'true' |
+| skip-push | If true, skip pushing any commits or tags created after the version bump. | boolean | 'true' |
+| dry-run | This makes sure that no changes are made to the AsyncAPI document and no changes are committed. Use this to determine if any bumps is necessary. Cannot be used in combination with the other `skip-` inputs. | boolean | 'false' |
+| path-to-asyncapi | Set a custom path to the asyncapi document. Useful in cases such as updating the version on main after a tag has been set. The path is resolved based on the path to the root of the repository. | string | './asyncapi.json' |
+| target-branch | Set a custom target branch to use when bumping the version. Useful in cases such as updating the version on main after a tag has been set. | string | '' |
+| pre-release-id | Set a custom pre-release id. | string | 'next' |
+| commit-message | Set a custom commit message for version bump commit. Useful for skipping additional workflows run on push. Use {{version}} as a placeholder for the new version. | string | 'ci: version bump to {{version}}' |
