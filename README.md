@@ -9,7 +9,7 @@ It analyses the commit messages to figure out how to appropriately bump the Asyn
 These are the current restrictions:
 - Only support **JSON** format for the AsyncAPI document and not **YAML**.
 - Cannot be triggered by nested references, as we only look for references in the AsyncAPI document.
-- 
+
 ## Usage
 You can use this action in different scenarios, below is a few use-cases.
 
