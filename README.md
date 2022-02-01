@@ -134,3 +134,4 @@ Access the new version of the AsyncAPI document after the version was bumped.
 | target-branch | Set a custom target branch to use when bumping the version. Useful in cases such as updating the version on main after a tag has been set. | string | '' |
 | pre-release-id | Set a custom pre-release id. | string | 'next' |
 | commit-message | Set a custom commit message for version bump commit. Useful for skipping additional workflows run on push. Use {{version}} as a placeholder for the new version. | string | 'ci: version bump to {{version}}' |
+| release-commit-message-regex | Set the regex to match release commit messages. Usually it is similar to `commit-message`. Use {{version}} as a placeholder for the new version. | string | 'ci: version bump to {{version}}' |

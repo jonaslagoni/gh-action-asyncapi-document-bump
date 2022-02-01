@@ -28,7 +28,8 @@ module.exports = async (
   targetBranch,
   preReleaseId,
   commitMessageToUse,
-  dryRun) => {
+  dryRun,
+  releaseCommitMessageRegex) => {
   // eslint-disable-next-line security/detect-non-literal-require
   const gitEvents = process.env.GITHUB_EVENT_PATH ? require(process.env.GITHUB_EVENT_PATH) : {};
   logInfo(`Found the following git events: ${JSON.stringify(gitEvents, null, 4)}`);
@@ -46,7 +47,7 @@ module.exports = async (
   const commitMessages = await getCommitMessages([pathToDocument, ...referencedFiles], gitEvents, token, workspace);
   logInfo(`Found commit messages: ${JSON.stringify(commitMessages, null, 4)}`);
 
-  const relevantCommitMessages = getRelevantCommitMessages(commitMessages, commitMessageToUse, tagPrefix);
+  const relevantCommitMessages = getRelevantCommitMessages(commitMessages, releaseCommitMessageRegex, tagPrefix);
   logInfo(`Relevant commit messages: ${JSON.stringify(relevantCommitMessages, null, 4)}`);
   if (relevantCommitMessages.length === 0) {
     exitSuccess('No action necessary because latest commit was a bump!');

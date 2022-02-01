@@ -67,6 +67,11 @@ inputs:
       Use {{version}} as a placeholder for the new version.
     default: 'ci: version bump to {{version}}'
     required: false
+  release-commit-message-regex:
+    description: |
+      Set the regex to match release commit messages. Usually it is similar to `commit-message`. Use {{version}} as a placeholder for the new version.
+    default: 'ci: version bump to {{version}}'
+    required: false
 outputs:
   wasBumped:
     description: 'Boolean to check if document was bumped'

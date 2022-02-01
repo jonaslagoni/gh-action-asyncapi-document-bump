@@ -152,13 +152,13 @@ async function getCommitMessages(relatedFiles, gitEvents, githubToken, workspace
  * Get all the commits up until the release commit
  * 
  * @param {*} commitMessages 
- * @param {*} commitMessageToUse 
+ * @param {*} releaseCommitMessageRegex 
  * @param {*} tagPrefix 
  * @returns 
  */
-function getRelevantCommitMessages(commitMessages, commitMessageToUse, tagPrefix) {
+function getRelevantCommitMessages(commitMessages, releaseCommitMessageRegex, tagPrefix) {
   // eslint-disable-next-line security/detect-non-literal-regexp
-  const commitMessageRegex = new RegExp(commitMessageToUse.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
+  const commitMessageRegex = new RegExp(releaseCommitMessageRegex.replace(/{{version}}/g, `${tagPrefix}\\d+\\.\\d+\\.\\d+`), 'ig');
   let commitIndexOfBump = undefined;
   // Find the latest commit that matches release commit message
   for (const [index, commitMessage] of commitMessages.entries()) {
