@@ -5,9 +5,8 @@
 
 ### GitHub action used to bump the AsyncAPI document version in similar fashion to [semantic-release](https://github.com/semantic-release). It analyses the commit messages to figure out how to appropriately bump the AsyncAPI document version while following semver.
 
-<video width="720" height="400" controls>
-  <source src="example-use.mp4" type="video/mp4">
-</video>
+https://user-images.githubusercontent.com/13396189/178147591-3858bba5-2848-4cb3-b5d3-3e1bf39bc4e4.mp4
+
 
 ---
 
