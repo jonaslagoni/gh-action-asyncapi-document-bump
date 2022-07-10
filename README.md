@@ -15,12 +15,12 @@ https://user-images.githubusercontent.com/13396189/178147591-3858bba5-2848-4cb3-
 <!-- toc -->
 
 - [Usage](#usage)
-  - [Automated push to main](#automated-push-to-main)
-  - [Through PR's](#through-prs)
+  * [Automated push to main](#automated-push-to-main)
+  * [Through PR's](#through-prs)
 - [Outputs](#outputs)
-    - [**wasBumped**](#wasbumped)
-    - [**oldVersion**](#oldversion)
-    - [**newVersion**](#newversion)
+    + [**wasBumped**](#wasbumped)
+    + [**oldVersion**](#oldversion)
+    + [**newVersion**](#newversion)
 - [Customization](#customization)
 - [Restrictions](#restrictions)
 
