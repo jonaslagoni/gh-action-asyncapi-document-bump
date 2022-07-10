@@ -1,7 +1,7 @@
 {
   "name": "@lagoni/gh-action-asyncapi-document-bump",
   "description": "GitHub action for bumping version of AsyncAPI documents with semantic release",
-  "version": "0.4.2",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/jonaslagoni/gh-action-asyncapi-document-bump.git"
@@ -19,10 +19,11 @@
   "main": "src/index.js",
   "scripts": {
     "start": "node ./src/index.js",
-    "test": "jest",
+    "test": "jest --coverage ",
     "lint": "eslint --max-warnings 0 --config \".eslintrc\" \".\"",
     "release": "semantic-release",
-    "generate:assets": "echo nothing to run",
+    "generate:assets": "npm run generate:readme:toc",
+    "generate:readme:toc": "markdown-toc -i README.md",
     "bump:version": "npm --no-git-tag-version --allow-same-version version $VERSION"
   },
   "dependencies": {
@@ -48,6 +49,7 @@
     "prettier": "^2.3.0",
     "semantic-release": "^18.0.0",
     "standard": "^14.3.3",
-    "tiny-glob": "^0.2.9"
+    "tiny-glob": "^0.2.9",
+    "markdown-toc": "^1.2.0"
   }
 }

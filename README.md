@@ -1,20 +1,36 @@
-> NOTICE: This library is at it's core forked from [GH action bump npm version](https://github.com/phips28/gh-action-bump-version).
+[![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
+[![Npm latest version](https://img.shields.io/npm/v/@lagoni/gh-action-asyncapi-document-bump)](https://www.npmjs.com/package/@jonaslagoni/gh-action-asyncapi-document-bump)
+[![License](https://img.shields.io/github/license/jonaslagoni/gh-action-asyncapi-document-bump)](https://github.com/jonaslagoni/gh-action-asyncapi-document-bump/blob/master/LICENSE)
+[![last commit](https://img.shields.io/github/last-commit/jonaslagoni/gh-action-asyncapi-document-bump)](https://github.com/jonaslagoni/gh-action-asyncapi-document-bump/commits/master)
 
-# AsyncAPI sematic release 
-GitHub action used to bump the AsyncAPI document version in similar fashion to [semantic-release](https://github.com/semantic-release). 
+### GitHub action used to bump the AsyncAPI document version in similar fashion to [semantic-release](https://github.com/semantic-release). It analyses the commit messages to figure out how to appropriately bump the AsyncAPI document version while following semver.
 
-It analyses the commit messages to figure out how to appropriately bump the AsyncAPI document version while following semver.
+https://user-images.githubusercontent.com/13396189/178147591-3858bba5-2848-4cb3-b5d3-3e1bf39bc4e4.mp4
 
-**Restrictions**
-These are the current restrictions:
-- Only support **JSON** format for the AsyncAPI document and not **YAML**.
-- Cannot be triggered by nested references, as we only look for references in the AsyncAPI document.
+
+---
+
+<!-- toc is generated with GitHub Actions do not remove toc markers -->
+
+<!-- toc -->
+
+- [Usage](#usage)
+  * [Automated push to main](#automated-push-to-main)
+  * [Through PR's](#through-prs)
+- [Outputs](#outputs)
+    + [**wasBumped**](#wasbumped)
+    + [**oldVersion**](#oldversion)
+    + [**newVersion**](#newversion)
+- [Customization](#customization)
+- [Restrictions](#restrictions)
+
+<!-- tocstop -->
 
 ## Usage
 You can use this action in different scenarios, below is a few use-cases.
 
 ### Automated push to main
-For each commit on the `main` branch, try make a bump release for service X.
+For each commit on the `main` branch, try make a bump release for service X. If there is any version
 ```yaml
 name: Bump AsyncAPI for X
 on:
@@ -28,7 +44,6 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v2
       - name: Automated Version Bump
-        id: version_bump
         uses: jonaslagoni/gh-action-asyncapi-document-bump@main
         env:
           GITHUB_TOKEN: '${{ secrets.GH_TOKEN }}'
@@ -78,7 +93,8 @@ jobs:
 
 ## Outputs
 The GitHub action support different outputs that can be used in other jobs to control or modify workflows.
-#### **wasBumped:**
+
+#### **wasBumped**
 Makes it possible to run conditional extra jobs depending on whether the AsyncAPI document version was bumped or not.
 ```yaml
     - name: 'Automated Version Bump'
@@ -90,7 +106,7 @@ Makes it possible to run conditional extra jobs depending on whether the AsyncAP
       name: This job is only run if the AsyncAPI document was bumped.
 ```
 
-#### **oldVersion:**
+#### **oldVersion**
 Access the old version of the AsyncAPI document before the version was bumped.
 ```yaml
     - name: 'Automated Version Bump'
@@ -103,7 +119,7 @@ Access the old version of the AsyncAPI document before the version was bumped.
       run: |
         echo ${{steps.version_bump.outputs.oldVersion}}
 ```
-#### **newVersion:**
+#### **newVersion**
 Access the new version of the AsyncAPI document after the version was bumped.
 ```yaml
     - name: 'Automated Version Bump'
@@ -117,7 +133,7 @@ Access the new version of the AsyncAPI document after the version was bumped.
         echo ${{steps.version_bump.outputs.newVersion}}
 ```
 
-### Customization
+## Customization
 
 | input | description | type | default | 
 |---|---|---|---|
@@ -135,3 +151,9 @@ Access the new version of the AsyncAPI document after the version was bumped.
 | pre-release-id | Set a custom pre-release id. | string | 'next' |
 | commit-message | Set a custom commit message for version bump commit. Useful for skipping additional workflows run on push. Use {{version}} as a placeholder for the new version. | string | 'ci: version bump to {{version}}' |
 | release-commit-message-regex | Set the regex to match release commit messages. Usually it is similar to `commit-message`. Use {{version}} as a placeholder for the new version. | string | 'ci: version bump to {{version}}' |
+
+## Restrictions
+
+These are the current restrictions:
+- Only support **JSON** format for the AsyncAPI document and not **YAML**.
+- Cannot be triggered by nested references, as we only look for references in the AsyncAPI document.
