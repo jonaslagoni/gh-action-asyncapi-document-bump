@@ -49,7 +49,8 @@ jobs:
           GITHUB_TOKEN: '${{ secrets.GH_TOKEN }}'
         with:
           path-to-asyncapi: ./x_asyncapi.json
-          commit-message: 'release: x-service v{{version}}'
+          commit-message: 'chore(release): x-service v{{version}}'
+          commit-release-commit-message-regex: 'chore\(release\): x-service v{{version}}'
 ```
 ### Through PR's
 
@@ -77,7 +78,7 @@ jobs:
           skip-tag: 'true'
           skip-commit: 'true'
           # Match commit message from PR creation, to know what commit are bump release. Match `commit-message` from PR creation.
-          commit-message: 'chore\(release\): x-service v{{version}}'
+          commit-release-commit-message-regex: 'chore\(release\): x-service v{{version}}'
       - if: steps.version_bump.outputs.wasBumped == 'true'
         name: Create Pull Request with bumped version
         uses: peter-evans/create-pull-request@v3
@@ -150,6 +151,7 @@ Access the new version of the AsyncAPI document after the version was bumped.
 | target-branch | Set a custom target branch to use when bumping the version. Useful in cases such as updating the version on main after a tag has been set. | string | '' |
 | pre-release-id | Set a custom pre-release id. | string | 'next' |
 | commit-message | Set a custom commit message for version bump commit. Useful for skipping additional workflows run on push. Use {{version}} as a placeholder for the new version. | string | 'ci: version bump to {{version}}' |
+| release-commit-message-regex | Set the regex to match release commit messages so the action knows which commit messages to use and which to ignore. Usually it is similar or the same as `commit-message`. Use {{version}} as a placeholder for the new version. Defaults to commit-message input. | string | 
 
 ## Restrictions
 
