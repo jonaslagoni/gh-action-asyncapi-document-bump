@@ -17,7 +17,8 @@ const { exitSuccess, logError, exitFailure } = require('./utils');
     const targetBranch=  core.getInput('target-branch');
     const preReleaseId = core.getInput('pre-release-id');
     const commitMessageToUse = core.getInput('commit-message');
-    const releaseCommitMessageRegex = core.getInput('release-commit-message-regex');
+    let releaseCommitMessageRegex = core.getInput('release-commit-message-regex');
+    releaseCommitMessageRegex = releaseCommitMessageRegex === undefined || releaseCommitMessageRegex === '' ? commitMessageToUse : releaseCommitMessageRegex;
     const wasBumped = await bumpVersion(tagPrefix,
       minorWording,
       majorWording,
@@ -31,7 +32,7 @@ const { exitSuccess, logError, exitFailure } = require('./utils');
       preReleaseId,
       commitMessageToUse, 
       dryRun,
-      releaseCommitMessageRegex || commitMessageToUse);
+      releaseCommitMessageRegex);
     if (wasBumped) {
       core.setOutput('wasBumped', wasBumped);
       exitSuccess('Version bumped!');

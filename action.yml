@@ -69,8 +69,7 @@ inputs:
     required: false
   release-commit-message-regex:
     description: |
-      Set the regex to match release commit messages. Usually it is similar to `commit-message`. Use {{version}} as a placeholder for the new version.
-    default: 'ci: version bump to {{version}}'
+      Set the regex to match release commit messages so the action knows which commit messages to use and which to ignore. Usually it is similar or the same as `commit-message`. Use {{version}} as a placeholder for the new version. Defaults to commit-message input.
     required: false
 outputs:
   wasBumped:
